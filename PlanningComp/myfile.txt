@@ -1,0 +1,140 @@
+smg
+
+formula actRisk_am1 = i1=1 ? act_r1 : (i1=2 ? act_r2 : (i1=3 ? act_r3 : init_risk));
+formula envRisk_am1 = p1=1 ? env_r1 : (p1=2 ? env_r2 : (p1=3 ? env_r3 : (p1=4 ? env_r4 : (p1=5 ? env_r5 : (p1=6 ? env_r6 : init_risk)))));
+formula estRisk_am1 = ((i1=1 ? act_r1 : (i1=2 ? act_r2 : (i1=3 ? act_r3 : init_risk))))+((p1=1 ? env_r1 : (p1=2 ? env_r2 : (p1=3 ? env_r3 : (p1=4 ? env_r4 : (p1=5 ? env_r5 : (p1=6 ? env_r6 : init_risk)))))))+((i2=1 ? act_r1 : (i2=2 ? act_r2 : (i2=3 ? act_r3 : init_risk))));
+formula actRisk_am2 = i2=1 ? act_r1 : (i2=2 ? act_r2 : (i2=3 ? act_r3 : init_risk));
+formula envRisk_am2 = p2=1 ? env_r1 : (p2=2 ? env_r2 : (p2=3 ? env_r3 : (p2=4 ? env_r4 : (p2=5 ? env_r5 : (p2=6 ? env_r6 : init_risk)))));
+formula estRisk_am2 = ((i2=1 ? act_r1 : (i2=2 ? act_r2 : (i2=3 ? act_r3 : init_risk))))+((p2=1 ? env_r1 : (p2=2 ? env_r2 : (p2=3 ? env_r3 : (p2=4 ? env_r4 : (p2=5 ? env_r5 : (p2=6 ? env_r6 : init_risk)))))))+((i1=1 ? act_r1 : (i1=2 ? act_r2 : (i1=3 ? act_r3 : init_risk))));
+
+label "done" = s=5|s=6;
+
+const int CYCLEMAX;
+const double init_risk = 0.0;
+const double act_r1 = 0.1;
+const double act_r2 = 0.2;
+const double act_r3 = 0.3;
+const double env_r1 = 0.5;
+const double env_r2 = 0.4;
+const double env_r3 = 0.3;
+const double env_r4 = 0.2;
+const double env_r5 = 0.1;
+const double env_r6 = 0.0;
+
+module coordinator
+
+	s : [0..6] init 0;
+	ctr1 : [0..CYCLEMAX] init 0;
+	ctr2 : [0..CYCLEMAX] init 0;
+
+	[initiate1] (s=0&p1<=3)&(s=0&ctr1<=CYCLEMAX) -> (s'=1) & (ctr1'=ctr1+1);
+	[initiate2] (s=0&p2<=3)&(s=0&ctr2<=CYCLEMAX) -> (s'=3) & (ctr2'=ctr2+1);
+	[terminate1] (s=0&p1>3)|(s=0&ctr1>CYCLEMAX) -> (s'=5);
+	[terminate2] (s=0&p2>3)|(s=0&ctr2>CYCLEMAX) -> (s'=6);
+	[plan1] s=1 -> (s'=2);
+	[observe1] s=2 -> (s'=0);
+	[plan2] s=3 -> (s'=4);
+	[observe2] s=4 -> (s'=0);
+
+endmodule
+
+module adaptPlanner1
+
+	i1 : [0..3] init 0;
+
+	[plan1] i1=0 -> 1.5/4 : (i1'=1) + 1.5/4 : (i1'=2) + 1/4 : (i1'=3);
+	[initiate1] i1=0|i1=1|i1=2|i1=3 -> (i1'=0);
+
+endmodule
+
+module qosObserver1
+
+	p1 : [0..5] init 0;
+
+	[observe1] p1=0 -> 1/8 : (p1'=1) + 1/8 : (p1'=2) + 1/8 : (p1'=3) + 2/8 : (p1'=4) + 3/8 : (p1'=5);
+	[initiate1] p1=0|p1=1|p1=2|p1=3|p1=4|p1=5 -> (p1'=0);
+
+endmodule
+
+module adaptPlanner2
+
+	i2 : [0..3] init 0;
+
+	[plan2] i2=0 -> 1.5/4 : (i2'=1) + 1.5/4 : (i2'=2) + 1/4 : (i2'=3);
+	[initiate2] i2=0|i2=1|i2=2|i2=3 -> (i2'=0);
+
+endmodule
+
+module qosObserver2
+
+	p2 : [0..5] init 0;
+
+	[observe2] p2=0 -> 1/8 : (p2'=1) + 1/8 : (p2'=2) + 1/8 : (p2'=3) + 2/8 : (p2'=4) + 3/8 : (p2'=5);
+	[initiate2] p2=0|p2=1|p2=2|p2=3|p2=4|p2=5 -> (p2'=0);
+
+endmodule
+
+player am1
+	adaptPlanner1, qosObserver1,
+	[plan1], [observe1]
+endplayer
+
+player am2
+	adaptPlanner2, qosObserver2,
+	[plan2], [observe2]
+endplayer
+
+player coord
+	coordinator,
+	[initiate1], [initiate2], [terminate1], [terminate2]
+endplayer
+
+rewards "allRisk_am1" 
+
+	s=2 : ((((i1=1 ? act_r1 : (i1=2 ? act_r2 : (i1=3 ? act_r3 : init_risk))))+((p1=1 ? env_r1 : (p1=2 ? env_r2 : (p1=3 ? env_r3 : (p1=4 ? env_r4 : (p1=5 ? env_r5 : (p1=6 ? env_r6 : init_risk)))))))+((i2=1 ? act_r1 : (i2=2 ? act_r2 : (i2=3 ? act_r3 : init_risk))))));
+
+endrewards
+
+rewards "allRisk_am2" 
+
+	s=4 : ((((i2=1 ? act_r1 : (i2=2 ? act_r2 : (i2=3 ? act_r3 : init_risk))))+((p2=1 ? env_r1 : (p2=2 ? env_r2 : (p2=3 ? env_r3 : (p2=4 ? env_r4 : (p2=5 ? env_r5 : (p2=6 ? env_r6 : init_risk)))))))+((i1=1 ? act_r1 : (i1=2 ? act_r2 : (i1=3 ? act_r3 : init_risk))))));
+
+endrewards
+
+rewards "actionRisk1" 
+
+	i1=1 : act_r1;
+	i1=2 : act_r2;
+	i1=3 : act_r3;
+
+endrewards
+
+rewards "envRisk1" 
+
+	p1=0 : env_r1;
+	p1=1 : env_r2;
+	p1=2 : env_r3;
+	p1=3 : env_r4;
+	p1=4 : env_r5;
+	p1=5 : env_r6;
+
+endrewards
+
+rewards "actionRisk2" 
+
+	i2=1 : act_r1;
+	i2=2 : act_r2;
+	i2=3 : act_r3;
+
+endrewards
+
+rewards "envRisk2" 
+
+	p2=0 : env_r1;
+	p2=1 : env_r2;
+	p2=2 : env_r3;
+	p2=3 : env_r4;
+	p2=4 : env_r5;
+	p2=5 : env_r6;
+
+endrewards

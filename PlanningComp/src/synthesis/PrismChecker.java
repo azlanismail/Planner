@@ -16,10 +16,10 @@ public class PrismChecker {
       public void go()
      {
            try {
-              PrismLog mainLog = new PrismFileLog("stdout");
+              PrismLog mainLog = new PrismFileLog("./myLog.txt");
               Prism prism = new Prism(mainLog , mainLog );
               prism.initialise();
-            
+              
               
               //load the model with a constant value
               Values v = new Values();
@@ -43,7 +43,8 @@ public class PrismChecker {
                   System.out.println("Error, file already exists.");
               
               int expT = 1; 
-              prism.exportStateRewardsToFile(model, expT, f);
+              //prism.exportStatesToFile(model, expT, f);
+              prism.exportPRISMModel(f);
           }
            catch (FileNotFoundException e ) {
               System. out .println("Error: " + e.getMessage());
