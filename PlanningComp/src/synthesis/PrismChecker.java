@@ -31,7 +31,7 @@ public class PrismChecker {
               PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile , new File("./Prismfiles/prop200815.props"));
               propertiesFile.setUndefinedConstants( null);
               Model model = prism.buildModel(modulesFile);
-              Result result = prism.modelCheck( model, propertiesFile , propertiesFile.getProperty(0));
+            //  Result result = prism.modelCheck( model, propertiesFile , propertiesFile.getProperty(0));
             //  System.out.println(result.getResult());
               System.out.println("testing");
               
@@ -43,7 +43,7 @@ public class PrismChecker {
                   System.out.println("Error, file already exists.");
               
               int expT = 1; 
-              //prism.exportStatesToFile(model, expT, f);
+              prism.exportStateRewardsToFile(model, expT, f);
           }
            catch (FileNotFoundException e ) {
               System. out .println("Error: " + e.getMessage());
