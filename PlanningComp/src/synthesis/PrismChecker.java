@@ -35,6 +35,9 @@ public class PrismChecker {
               //load the property
               PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile , new File("./Prismfiles/dice.pctl"));
               propertiesFile.setUndefinedConstants(v);
+              PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile , new File("./Prismfiles/dice.pctl"));
+              propertiesFile.setUndefinedConstants(v);
+      
               Model model = prism.buildModel(modulesFile);
               Result result = prism.modelCheck( model, propertiesFile , propertiesFile.getProperty(0));
               System.out.println(result.getResult());
