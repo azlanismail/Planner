@@ -41,14 +41,14 @@ public class PrismChecker {
               System.out.println("testing");
               
               // write the outcomes into a file
-              // File f = new File("./myfile.txt");
-              //    if(f.createNewFile())
-              //      System.out.println("Success!");
-              //    else
-              //       System.out.println("Error, file already exists.");
+              File f = new File("./myfile.txt");
+                  if(f.createNewFile())
+                    System.out.println("Success!");
+                  else
+                     System.out.println("Error, file already exists.");
               
-              //   int expT = 1; 
-              //   prism.exportStateRewardsToFile(model, expT, f);
+              int expT = 1; 
+              prism.exportStateRewardsToFile(model, expT, f);
               //   prism.exportPRISMModel(f);
           }
            catch (FileNotFoundException e ) {

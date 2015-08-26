@@ -2,7 +2,7 @@ PRISM-games
 ===========
 
 Version: beta
-Date: Wed Aug 26 11:34:49 BST 2015
+Date: Wed Aug 26 14:03:08 BST 2015
 Hostname: Azlan-PC
 
 Type:        DTMC
@@ -17,7 +17,7 @@ Computing reachable states...
 
 Reachability (BFS): 4 iterations in 0.00 seconds (average 0.000000, setup 0.00)
 
-Time for model construction: 0.019 seconds.
+Time for model construction: 0.047 seconds.
 
 Type:        DTMC
 States:      13 (1 initial)
@@ -57,3 +57,5 @@ Property satisfied in 1 of 1 initial states.
 Time for model checking: 0.003 seconds.
 
 Result: true (property satisfied in the initial state)
+
+Exporting state rewards vector in plain text format to file ".\myfile.txt"...
