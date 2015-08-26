@@ -1,3 +1,6 @@
+/**
+ * Author@Azlan Ismail
+ */
 package synthesis;
 
 import java.io.*;
@@ -33,8 +36,6 @@ public class PrismChecker {
               modulesFile .setUndefinedConstants(null);
               
               //load the property
-              PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile , new File("./Prismfiles/dice.pctl"));
-              propertiesFile.setUndefinedConstants(v);
               PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile , new File("./Prismfiles/dice.pctl"));
               propertiesFile.setUndefinedConstants(v);
       
