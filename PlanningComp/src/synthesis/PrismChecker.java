@@ -9,11 +9,16 @@ public class PrismChecker {
 
       public static void main(String[] args) {
            // TODO Auto-generated method stub
-          new PrismChecker().go();
+    	  PrismChecker pc = new PrismChecker();
+          pc.synthesis();
      }
      
+      public PrismChecker()
+      {
+    	  
+      }
 
-      public void go()
+      public void synthesis()
      {
            try {
               PrismLog mainLog = new PrismFileLog("./myLog.txt");
@@ -31,20 +36,20 @@ public class PrismChecker {
               PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile , new File("./Prismfiles/dice.pctl"));
               propertiesFile.setUndefinedConstants(v);
               Model model = prism.buildModel(modulesFile);
-              //  Result result = prism.modelCheck( model, propertiesFile , propertiesFile.getProperty(0));
-              //  System.out.println(result.getResult());
+              Result result = prism.modelCheck( model, propertiesFile , propertiesFile.getProperty(0));
+              System.out.println(result.getResult());
               System.out.println("testing");
               
-              //write the outcomes into a file
-              File f = new File("./myfile.txt");
-              if(f.createNewFile())
-                  System.out.println("Success!");
-              else
-                  System.out.println("Error, file already exists.");
+              // write the outcomes into a file
+              // File f = new File("./myfile.txt");
+              //    if(f.createNewFile())
+              //      System.out.println("Success!");
+              //    else
+              //       System.out.println("Error, file already exists.");
               
-              int expT = 1; 
-              //prism.exportStatesToFile(model, expT, f);
-              prism.exportPRISMModel(f);
+              //   int expT = 1; 
+              //   prism.exportStateRewardsToFile(model, expT, f);
+              //   prism.exportPRISMModel(f);
           }
            catch (FileNotFoundException e ) {
               System.out.println("Error: " + e.getMessage());
