@@ -23,16 +23,16 @@ public class PrismChecker {
               
               //load the model with a constant value
               Values v = new Values();
-              v.setValue( "CYCLEMAX" , 2);
-              ModulesFile modulesFile = prism.parseModelFile( new File("./Prismfiles/mainmodel_v11.smg" ));
-              modulesFile .setUndefinedConstants(v);
+              v.setValue("x" , 2);
+              ModulesFile modulesFile = prism.parseModelFile( new File("./Prismfiles/dice.pm"));
+              modulesFile .setUndefinedConstants(null);
               
               //load the property
-              PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile , new File("./Prismfiles/prop200815.props"));
-              propertiesFile.setUndefinedConstants( null);
+              PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile , new File("./Prismfiles/dice.pctl"));
+              propertiesFile.setUndefinedConstants(v);
               Model model = prism.buildModel(modulesFile);
-            //  Result result = prism.modelCheck( model, propertiesFile , propertiesFile.getProperty(0));
-            //  System.out.println(result.getResult());
+              //  Result result = prism.modelCheck( model, propertiesFile , propertiesFile.getProperty(0));
+              //  System.out.println(result.getResult());
               System.out.println("testing");
               
               //write the outcomes into a file
@@ -47,16 +47,16 @@ public class PrismChecker {
               prism.exportPRISMModel(f);
           }
            catch (FileNotFoundException e ) {
-              System. out .println("Error: " + e.getMessage());
+              System.out.println("Error: " + e.getMessage());
               System. exit(1);
           }
            catch (PrismException e ) {
-              System. out .println("Error: " + e.getMessage());
+              System.out.println("Error: " + e.getMessage());
               System. exit(1);
           }
            catch(IOException e) {
               // ioe.printStackTrace();
-               System. out .println("Error: " + e.getMessage());
+               System.out.println("Error: " + e.getMessage());
                System. exit(1);
           }
      }
