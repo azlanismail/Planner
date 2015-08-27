@@ -36,7 +36,7 @@ public class PrismChecker {
               modulesFile.setUndefinedConstants(v);
               
               //load the property
-              PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile, new File("./Prismfiles/prop200815.props"));
+              PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile, new File("./Prismfiles/prop270815.props"));
               propertiesFile.setUndefinedConstants(null);
               
               //build and check the model
@@ -44,8 +44,10 @@ public class PrismChecker {
               Model model = prismEx.buildModel(modulesFile, simEngine);
               Result result = prismEx.modelCheck(model, modulesFile, propertiesFile , propertiesFile.getProperty(0));
               
+              
               //get the outcomes
-              System.out.println(result.getResult());
+              System.out.println("The result is "+result.getResult());
+              System.out.println(result.getCounterexample());
               System.out.println("Number of num states :"+model.getNumStates());
               
               // write the outcomes into a file
