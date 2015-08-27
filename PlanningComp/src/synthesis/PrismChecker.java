@@ -5,7 +5,6 @@ package synthesis;
 
 import java.io.*;
 
-import parser.PrismParser;
 import parser.Values;
 import parser.ast.*;
 import prism.*;
@@ -32,7 +31,6 @@ public class PrismChecker {
 
               //load the model with the required constant value
               Values v = new Values();
-              v.setValue("x" , 2);
               v.setValue("CYCLEMAX", 2);
               ModulesFile modulesFile = prism.parseModelFile(new File("./Prismfiles/mainmodel_v11.smg"));
               modulesFile.setUndefinedConstants(v);
