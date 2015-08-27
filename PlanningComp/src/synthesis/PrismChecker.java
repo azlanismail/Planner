@@ -4,9 +4,13 @@
 package synthesis;
 
 import java.io.*;
+
+import parser.PrismParser;
 import parser.Values;
 import parser.ast.*;
 import prism.*;
+import explicit.*;
+import explicit.Model;
 
 public class PrismChecker {
 
@@ -25,24 +29,27 @@ public class PrismChecker {
      {
            try {
               PrismLog mainLog = new PrismFileLog("./myLog.txt");
-              Prism prism = new Prism(mainLog , mainLog );
-              prism.initialise();
+              PrismSettings ps = new PrismSettings();
+              PrismExplicit prism = new PrismExplicit(mainLog, ps);
+              //prism.initialise();
               
               
               //load the model with a constant value
               Values v = new Values();
               v.setValue("x" , 2);
-              ModulesFile modulesFile = prism.parseModelFile( new File("./Prismfiles/dice.pm"));
+              ModulesFile modulesFile = prism. parseModelFile( new File("./Prismfiles/smg_example.prism"));
+              ModulesFile modulesFile = mySMGParser(new File("./Prismfiles/smg_example.prism"));
               modulesFile .setUndefinedConstants(null);
               
+              
               //load the property
-              PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile , new File("./Prismfiles/dice.pctl"));
+              PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile , new File("./Prismfiles/smg_example.props"));
               propertiesFile.setUndefinedConstants(v);
       
-              Model model = prism.buildModel(modulesFile);
-              Result result = prism.modelCheck( model, propertiesFile , propertiesFile.getProperty(0));
-              System.out.println(result.getResult());
-              System.out.println("testing");
+              explicit.Model model = (explicit.Model)prism.buildModelExplicit(modulesFile);
+             // Result result = prism. modelCheck( model, propertiesFile , propertiesFile.getProperty(0));
+             // System.out.println(result.getResult());
+              System.out.println("Number of num states :"+model.getNumStates());
               
               // write the outcomes into a file
               File f = new File("./myfile.txt");
@@ -51,8 +58,8 @@ public class PrismChecker {
                   else
                      System.out.println("Error, file already exists.");
               
-              int expT = 1; 
-              prism.exportStateRewardsToFile(model, expT, f);
+             // int expT = 1; 
+             // prism.exportStateRewardsToFile(model, expT, f);
               //   prism.exportPRISMModel(f);
           }
            catch (FileNotFoundException e ) {
@@ -68,5 +75,35 @@ public class PrismChecker {
                System.out.println("Error: " + e.getMessage());
                System. exit(1);
           }
-     }
-}
+     }//end of synthesis
+      
+      public ModulesFile mySMGParser(File file) throws FileNotFoundException,
+		PrismLangException
+     {
+    	  FileInputStream strModel;
+    	  PrismParser prismParser;
+    	  ModulesFile modulesFile = null;
+
+    	  // open file
+    	  strModel = new FileInputStream(file);
+
+    	  try {
+    		  // obtain exclusive access to the prism parser
+    		  // (don't forget to release it afterwards)
+    		  prismParser = getPrismParser();
+    		  try {
+    			  // parse file
+    			  modulesFile = prismParser.parseModulesFile(strModel, typeOverride);
+    		  } finally {
+    			  // release prism parser
+    			  releasePrismParser();
+    		  }
+    	  } catch (InterruptedException ie) {
+    		  throw new PrismLangException("Concurrency error in parser");
+    	  }
+
+    	  modulesFile.tidyUp();
+
+    	  return modulesFile;
+     }//end of my SMG Parser
+}//end of class
