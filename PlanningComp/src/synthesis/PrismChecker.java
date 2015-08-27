@@ -11,6 +11,7 @@ import parser.ast.*;
 import prism.*;
 import explicit.*;
 import explicit.Model;
+import simulator.SimulatorEngine;
 
 public class PrismChecker {
 
@@ -20,35 +21,33 @@ public class PrismChecker {
           pc.synthesis();
      }
      
-      public PrismChecker()
-      {
-    	  
-      }
-
       public void synthesis()
      {
            try {
               PrismLog mainLog = new PrismFileLog("./myLog.txt");
               PrismSettings ps = new PrismSettings();
-              PrismExplicit prism = new PrismExplicit(mainLog, ps);
-              //prism.initialise();
-              
-              
-              //load the model with a constant value
+              PrismExplicit prismEx = new PrismExplicit(mainLog, ps);
+              Prism prism = new Prism(mainLog , mainLog );
+              prism.initialise();
+
+              //load the model with the required constant value
               Values v = new Values();
               v.setValue("x" , 2);
-              ModulesFile modulesFile = prism. parseModelFile( new File("./Prismfiles/smg_example.prism"));
-              ModulesFile modulesFile = mySMGParser(new File("./Prismfiles/smg_example.prism"));
-              modulesFile .setUndefinedConstants(null);
-              
+              v.setValue("CYCLEMAX", 2);
+              ModulesFile modulesFile = prism.parseModelFile(new File("./Prismfiles/mainmodel_v11.smg"));
+              modulesFile.setUndefinedConstants(v);
               
               //load the property
-              PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile , new File("./Prismfiles/smg_example.props"));
-              propertiesFile.setUndefinedConstants(v);
-      
-              explicit.Model model = (explicit.Model)prism.buildModelExplicit(modulesFile);
-             // Result result = prism. modelCheck( model, propertiesFile , propertiesFile.getProperty(0));
-             // System.out.println(result.getResult());
+              PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile, new File("./Prismfiles/prop200815.props"));
+              propertiesFile.setUndefinedConstants(null);
+              
+              //build and check the model
+              SimulatorEngine simEngine = new SimulatorEngine(prism);
+              Model model = prismEx.buildModel(modulesFile, simEngine);
+              Result result = prismEx.modelCheck(model, modulesFile, propertiesFile , propertiesFile.getProperty(0));
+              
+              //get the outcomes
+              System.out.println(result.getResult());
               System.out.println("Number of num states :"+model.getNumStates());
               
               // write the outcomes into a file
@@ -57,7 +56,7 @@ public class PrismChecker {
                     System.out.println("Success!");
                   else
                      System.out.println("Error, file already exists.");
-              
+             
              // int expT = 1; 
              // prism.exportStateRewardsToFile(model, expT, f);
               //   prism.exportPRISMModel(f);
@@ -77,33 +76,4 @@ public class PrismChecker {
           }
      }//end of synthesis
       
-      public ModulesFile mySMGParser(File file) throws FileNotFoundException,
-		PrismLangException
-     {
-    	  FileInputStream strModel;
-    	  PrismParser prismParser;
-    	  ModulesFile modulesFile = null;
-
-    	  // open file
-    	  strModel = new FileInputStream(file);
-
-    	  try {
-    		  // obtain exclusive access to the prism parser
-    		  // (don't forget to release it afterwards)
-    		  prismParser = getPrismParser();
-    		  try {
-    			  // parse file
-    			  modulesFile = prismParser.parseModulesFile(strModel, typeOverride);
-    		  } finally {
-    			  // release prism parser
-    			  releasePrismParser();
-    		  }
-    	  } catch (InterruptedException ie) {
-    		  throw new PrismLangException("Concurrency error in parser");
-    	  }
-
-    	  modulesFile.tidyUp();
-
-    	  return modulesFile;
-     }//end of my SMG Parser
 }//end of class
