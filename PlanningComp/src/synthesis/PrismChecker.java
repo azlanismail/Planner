@@ -10,7 +10,9 @@ import parser.ast.*;
 import prism.*;
 import explicit.*;
 import explicit.Model;
+import explicit.rewards.*;
 import simulator.SimulatorEngine;
+
 
 public class PrismChecker {
 
@@ -49,6 +51,12 @@ public class PrismChecker {
               System.out.println("The result is "+result.getResult());
               System.out.println(result.getCounterexample());
               System.out.println("Number of num states :"+model.getNumStates());
+              
+              //construct the rewards
+              ConstructRewards csr = new ConstructRewards(mainLog);
+              RewardStruct rw = new RewardStruct();
+              SMGRewards smgr = csr.buildSMGRewardStructure((SMG)model, rw, v);
+              System.out.println("The reward is "+smgr.getStateReward(3));
               
               // write the outcomes into a file
               File f = new File("./myfile.txt");
