@@ -11,7 +11,7 @@ import prism.*;
 import explicit.*;
 import explicit.Model;
 import explicit.rewards.*;
-import simulator.SimulatorEngine;
+import simulator.*;
 
 
 public class PrismChecker {
@@ -65,6 +65,11 @@ public class PrismChecker {
                   else
                      System.out.println("Error, file already exists.");
              
+             //generate the path
+               GenerateSimulationPath simPath = new GenerateSimulationPath(simEngine, mainLog);
+               String details = "time=100";
+               simPath.generateSimulationPath(modulesFile, null, details, 10, f);
+                 
              // int expT = 1; 
              // prism.exportStateRewardsToFile(model, expT, f);
               //   prism.exportPRISMModel(f);
