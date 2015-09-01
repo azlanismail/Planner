@@ -1,0 +1,159 @@
+// Simulating multiple self-adaptive systems in multi-cloud environment
+// by Azlan Ismail
+// features: 
+// a) one coordinator with loop
+// b) two planners
+// c) two qosObservers
+  
+
+smg
+
+// player for the adaptation manager
+player am 
+adaptPlanner, qosObserver, [enlServ], [disServ]
+endplayer
+
+//player for the environment
+player env 
+anvironment 
+endplayer
+
+//to control the turn
+const TE=0;
+const TP=1;
+global t:[TE..TP] init TE;
+
+//====================================================
+//coordinator
+
+module environment
+	define the range value of latency
+	define the range value of 
+	[] if its turn & planning is not end & still less than max latency -> 
+		set the current value of latency & accumulate latency & (t'=TP);
+
+endmodule
+
+//======================================================
+// player am
+
+//check the goal satisfaction
+formula goal=(rt < maxRT ? true:false);
+
+module adaptPlanner
+	sat : bool init false; 
+
+	//make selection
+	[enlServ] (t=TP) & (goal=false) & (s < maxServ) -> (t'=TE);	
+	[disServ] (t=TP) & (goal=false) & (s >= maxServ) -> (t'=TE);
+
+	//terminate
+	[] (t=TP) & (goal=true) & (sat=false) -> (sat'=true);
+endmodule
+
+module qosObserver
+	// State of QoS for application layer
+	// 0 = no status
+	// 1,2,3 = violated
+	// 4,5 = healthy
+	p1: [0..5] init 0; 
+
+	//estimated QoS effect for application layer
+	[observe1] p1=0 -> 1/8:(p1'=1) + 1/8:(p1'=2) + 1/8:(p1'=3) 
+                   + 2/8:(p1'=4) + 3/8:(p1'=5);
+	[initiate1] p1=0 | p1=1 | p1=2 | p1=3 | p1=4 | p1=5 -> (p1'=0);
+
+	//simulate the effect
+	[enlServ] if 
+	[disServ]
+
+endmodule
+
+//=============================================
+//defining a set of values for the risks
+const double init_risk = 0.0;
+const double act_r1 = 0.1;
+const double act_r2 = 0.2;
+const double act_r3 = 0.3;
+
+const double env_r1 = 0.5;
+const double env_r2 = 0.4;
+const double env_r3 = 0.3;
+const double env_r4 = 0.2;
+const double env_r5 = 0.1;
+const double env_r6 = 0.0;
+
+//=============================================
+//formula for am1
+formula actRisk_am1 = 	i1=1 ? act_r1 :
+			(i1=2 ? act_r2 :
+			(i1=3 ? act_r3 : init_risk));
+
+formula envRisk_am1 = 	p1=1 ? env_r1 :
+			(p1=2 ? env_r2 :
+			(p1=3 ? env_r3 : 
+			(p1=4 ? env_r4 :
+			(p1=5 ? env_r5 :
+			(p1=6 ? env_r6 : init_risk)))));
+
+formula estRisk_am1 = actRisk_am1 + envRisk_am1 + actRisk_am2;
+
+//==============================================
+//Estimated risk of planning for am1
+//s=2 is the state where a plan is obtained for am1
+rewards "allRisk_am1"
+	s=2 : estRisk_am1;
+endrewards
+
+
+//=============================================
+//formula for am2
+formula actRisk_am2 = 	i2=1 ? act_r1 :
+			(i2=2 ? act_r2 :
+			(i2=3 ? act_r3 : init_risk));
+
+formula envRisk_am2 = 	p2=1 ? env_r1 :
+			(p2=2 ? env_r2 :
+			(p2=3 ? env_r3 : 
+			(p2=4 ? env_r4 :
+			(p2=5 ? env_r5 :
+			(p2=6 ? env_r6 : init_risk)))));
+
+formula estRisk_am2 = actRisk_am2 + envRisk_am2 + actRisk_am1;
+
+//============================================
+//Estimated risk of planning for am2
+//s=4 is the state where a plan is obtained for am2
+rewards "allRisk_am2"
+	s=4 : estRisk_am2;
+endrewards
+
+//=============================================
+//Risk of selecting the action for am1
+rewards "actionRisk1"
+	i1=1 : act_r1; i1=2 : act_r2; i1=3 : act_r3;
+endrewards
+
+//=============================================
+//Risk on the system environment for am1
+rewards "envRisk1"
+        p1=0 : env_r1; p1=1 : env_r2; p1=2 :env_r3;
+	p1=3 : env_r4; p1=4 : env_r5; p1=5 :env_r6;
+endrewards
+
+//=============================================
+//Risk of selecting the action for am2
+rewards "actionRisk2"
+	i2=1 : act_r1; i2=2 : act_r2; i2=3 : act_r3;
+endrewards
+
+//=============================================
+//Risk on the system environment for am2
+rewards "envRisk2"
+        p2=0 : env_r1; p2=1 : env_r2; p2=2 : env_r3;
+	p2=3 : env_r4; p2=4 : env_r5; p2=5 : env_r6;
+endrewards
+//==============================================
+
+// Labels
+label "done" = s=5 | s=6;
