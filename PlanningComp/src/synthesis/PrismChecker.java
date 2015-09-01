@@ -70,9 +70,6 @@ public class PrismChecker {
                String details = "time=100";
                simPath.generateSimulationPath(modulesFile, null, details, 10, f);
                  
-             // int expT = 1; 
-             // prism.exportStateRewardsToFile(model, expT, f);
-              //   prism.exportPRISMModel(f);
           }
            catch (FileNotFoundException e ) {
               System.out.println("Error: " + e.getMessage());
