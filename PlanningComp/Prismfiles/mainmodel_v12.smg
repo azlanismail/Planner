@@ -24,13 +24,16 @@ const TP=1;
 global t:[TE..TP] init TE;
 
 //====================================================
-//coordinator
-
+//player environment
+const MIN_LATEN;
+const MAX_LATEN;
+const MAX_TOTAL_LATEN;
 module environment
-	define the range value of latency
-	define the range value of 
-	[] if its turn & planning is not end & still less than max latency -> 
-		set the current value of latency & accumulate latency & (t'=TP);
+	rt:[MIN_LATEN..MAX_LATEN] init MIN_LATEN;
+	rt_total:[0..MAX_TOTAL_LATEN] init 0;
+	
+	//how X is defined?
+	[] (t=TE) & (sat=false) & (X + rt_total < MAX_TOTAL_LATEN) -> (rt'=X) & (rt_total'= rt_total + X) & (t'=TP);
 
 endmodule
 
@@ -52,108 +55,53 @@ module adaptPlanner
 endmodule
 
 module qosObserver
-	// State of QoS for application layer
-	// 0 = no status
-	// 1,2,3 = violated
-	// 4,5 = healthy
-	p1: [0..5] init 0; 
+	//define the range of servers
+	//define the range of response time
+	// 
 
-	//estimated QoS effect for application layer
-	[observe1] p1=0 -> 1/8:(p1'=1) + 1/8:(p1'=2) + 1/8:(p1'=3) 
-                   + 2/8:(p1'=4) + 3/8:(p1'=5);
-	[initiate1] p1=0 | p1=1 | p1=2 | p1=3 | p1=4 | p1=5 -> (p1'=0);
-
-	//simulate the effect
-	[enlServ] if 
-	[disServ]
+	[enlServ] if server 1 is off -> activate server 1 & update the response time 
+	[disServ] if server 1 is on -> deactivate server 1 & update the response time
 
 endmodule
 
 //=============================================
-//defining a set of values for the risks
-const double init_risk = 0.0;
-const double act_r1 = 0.1;
-const double act_r2 = 0.2;
-const double act_r3 = 0.3;
-
-const double env_r1 = 0.5;
-const double env_r2 = 0.4;
-const double env_r3 = 0.3;
-const double env_r4 = 0.2;
-const double env_r5 = 0.1;
-const double env_r6 = 0.0;
+//defining the utility preferences / weights
+//the values are provided from external 
+const W_U1, W_U2;
 
 //=============================================
-//formula for am1
-formula actRisk_am1 = 	i1=1 ? act_r1 :
-			(i1=2 ? act_r2 :
-			(i1=3 ? act_r3 : init_risk));
+//defining the utility functions
 
-formula envRisk_am1 = 	p1=1 ? env_r1 :
-			(p1=2 ? env_r2 :
-			(p1=3 ? env_r3 : 
-			(p1=4 ? env_r4 :
-			(p1=5 ? env_r5 :
-			(p1=6 ? env_r6 : init_risk)))));
+//u1 -> response time
+formula u1 = (rt>= 0 & rt <= 100 ? 1:
+			(rt>= 101 & rt <= 200 ? 1:
+			(rt>= 201 & rt <= 500 ? 0.99:
+			(rt>= 501 & rt <= 1000 ? 0.90:
+			(rt>= 1001 & rt <= 1500 ? 0.75:
+			(rt>= 1501 & rt <= 2000 ? 0.50:
+			(rt>= 2001 & rt <= 4000 ? 0.25:
+			(rt> 4000 ? 0:0))))))));
 
-formula estRisk_am1 = actRisk_am1 + envRisk_am1 + actRisk_am2;
+//u2 -> cost / number of servers
+formula u2 = (s=0 ? 1 :
+		(s=1 ? 1 :
+		(s=2 ? 0.90 : 
+		(s=3 ? 0.30 :
+		(s=4 ? 0 : 0)))));
+
+//=============================================
+//defining the impact (cost/benefits)
+
+//impact for u1
+formula um1 = 1:
+
 
 //==============================================
-//Estimated risk of planning for am1
-//s=2 is the state where a plan is obtained for am1
-rewards "allRisk_am1"
-	s=2 : estRisk_am1;
+//Computing the utility
+rewards "rU"
+	t=TP : quality of utility 1 + quality of utility 2;
 endrewards
 
-
-//=============================================
-//formula for am2
-formula actRisk_am2 = 	i2=1 ? act_r1 :
-			(i2=2 ? act_r2 :
-			(i2=3 ? act_r3 : init_risk));
-
-formula envRisk_am2 = 	p2=1 ? env_r1 :
-			(p2=2 ? env_r2 :
-			(p2=3 ? env_r3 : 
-			(p2=4 ? env_r4 :
-			(p2=5 ? env_r5 :
-			(p2=6 ? env_r6 : init_risk)))));
-
-formula estRisk_am2 = actRisk_am2 + envRisk_am2 + actRisk_am1;
-
-//============================================
-//Estimated risk of planning for am2
-//s=4 is the state where a plan is obtained for am2
-rewards "allRisk_am2"
-	s=4 : estRisk_am2;
-endrewards
-
-//=============================================
-//Risk of selecting the action for am1
-rewards "actionRisk1"
-	i1=1 : act_r1; i1=2 : act_r2; i1=3 : act_r3;
-endrewards
-
-//=============================================
-//Risk on the system environment for am1
-rewards "envRisk1"
-        p1=0 : env_r1; p1=1 : env_r2; p1=2 :env_r3;
-	p1=3 : env_r4; p1=4 : env_r5; p1=5 :env_r6;
-endrewards
-
-//=============================================
-//Risk of selecting the action for am2
-rewards "actionRisk2"
-	i2=1 : act_r1; i2=2 : act_r2; i2=3 : act_r3;
-endrewards
-
-//=============================================
-//Risk on the system environment for am2
-rewards "envRisk2"
-        p2=0 : env_r1; p2=1 : env_r2; p2=2 : env_r3;
-	p2=3 : env_r4; p2=4 : env_r5; p2=5 : env_r6;
-endrewards
-//==============================================
 
 // Labels
 label "done" = s=5 | s=6;
