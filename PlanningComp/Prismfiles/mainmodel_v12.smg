@@ -15,7 +15,7 @@ endplayer
 
 //player for the environment
 player env 
-anvironment 
+environment 
 endplayer
 
 //to control the turn
@@ -28,12 +28,14 @@ global t:[TE..TP] init TE;
 const MIN_LATEN;
 const MAX_LATEN;
 const MAX_TOTAL_LATEN;
+const CUR_LATEN;
 module environment
-	rt:[MIN_LATEN..MAX_LATEN] init MIN_LATEN;
-	rt_total:[0..MAX_TOTAL_LATEN] init 0;
+	rt_delta:[MIN_LATEN..MAX_LATEN] init MIN_LATEN;
+	rt_delta_total:[0..MAX_TOTAL_LATEN] init 0;
 	
-	//how X is defined?
-	[] (t=TE) & (sat=false) & (X + rt_total < MAX_TOTAL_LATEN) -> (rt'=X) & (rt_total'= rt_total + X) & (t'=TP);
+	//update the network latency
+	[] (t=TE) & (sat=false) & (CUR_LATEN + rt_delta_total < MAX_TOTAL_LATEN) -> 
+					(rt_delta'=CUR_LATEN) & (rt_delta_total'= rt_delta_total + CUR_LATEN) & (t'=TP);
 
 endmodule
 
@@ -41,33 +43,37 @@ endmodule
 // player am
 
 //check the goal satisfaction
-formula goal=(rt < maxRT ? true:false);
-
+formula goal=(rt < MAXRT ? true:false);
 module adaptPlanner
 	sat : bool init false; 
 
 	//make selection
-	[enlServ] (t=TP) & (goal=false) & (s < maxServ) -> (t'=TE);	
-	[disServ] (t=TP) & (goal=false) & (s >= maxServ) -> (t'=TE);
+	[enlServ] (t=TP) & (goal=false) & (s <= MAXSERV) -> (t'=TE);	
+	[disServ] (t=TP) & (goal=false) & (s >= MAXSERV) -> (t'=TE);
 
 	//terminate
 	[] (t=TP) & (goal=true) & (sat=false) -> (sat'=true);
 endmodule
 
+//set the equation for the response time impact
+formula enlim_rt=rt - 1000 >=0 ? (rt-1000 <= MAXRT?rt-1000:MAXRT):0;
+const disim_rt = 1000;
+const MINSERV;
+const MAXSERV;
+const MAXRT;
+const INITRT; 
 module qosObserver
-	//define the range of servers
-	//define the range of response time
-	// 
-
-	[enlServ] if server 1 is off -> activate server 1 & update the response time 
-	[disServ] if server 1 is on -> deactivate server 1 & update the response time
-
+	rt:[0..MAXRT] init INITRT;
+	s:[MINSERV..MAXSERV] init MINSERV;
+	[enlServ] (s < MAXSERV) -> (s'=s+1) & (rt'=enlim_rt + rt_delta);
+	[disServ] (s > MINSERV) -> (s'=s+1) & (rt'=disim_rt + rt_delta);
 endmodule
 
 //=============================================
 //defining the utility preferences / weights
 //the values are provided from external 
-const W_U1, W_U2;
+const double W_U1;
+const double W_U2;
 
 //=============================================
 //defining the utility functions
@@ -89,17 +95,11 @@ formula u2 = (s=0 ? 1 :
 		(s=3 ? 0.30 :
 		(s=4 ? 0 : 0)))));
 
-//=============================================
-//defining the impact (cost/benefits)
-
-//impact for u1
-formula um1 = 1:
-
 
 //==============================================
 //Computing the utility
-rewards "rU"
-	t=TP : quality of utility 1 + quality of utility 2;
+rewards "ru"
+	t=TP : u1 * W_U1 + u2 * W_U2;
 endrewards
 
 

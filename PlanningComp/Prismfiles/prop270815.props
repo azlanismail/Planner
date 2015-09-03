@@ -1,2 +1,2 @@
-<<coord,am1>> R{"actionRisk1"}min=? [ Fc "done" ]
+<<am>> R{"ru"}max=? [ Fc sat ]
 

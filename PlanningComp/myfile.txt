@@ -3,7 +3,4 @@ action step s ctr1 ctr2 i1 p1 i2 p2
 [initiate2] 1 3 0 1 0 0 0 0
 [plan2] 2 4 0 1 0 0 3 0
 [observe2] 3 0 0 1 0 0 3 5
-[initiate1] 4 1 1 1 0 0 3 5
-[plan1] 5 2 1 1 1 0 3 5
-[observe1] 6 0 1 1 1 5 3 5
-[terminate2] 7 6 1 1 1 5 3 5
+[terminate2] 4 6 0 1 0 0 3 5

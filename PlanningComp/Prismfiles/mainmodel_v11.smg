@@ -25,6 +25,7 @@ endplayer
 //====================================================
 //coordinator
 const int CYCLEMAX;
+const TEST;
 module coordinator
 	// State of coordination
 	// 0 = both are waiting

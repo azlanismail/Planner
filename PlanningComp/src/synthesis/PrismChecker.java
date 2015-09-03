@@ -33,10 +33,12 @@ public class PrismChecker {
 
               //load the model with the required constant value
               Values v = new Values();
-              v.setValue("CYCLEMAX", 2);
+              v.addValue("CYCLEMAX", 2);
+              v.addValue("TEST", 2);
+              
               ModulesFile modulesFile = prism.parseModelFile(new File("./Prismfiles/mainmodel_v11.smg"));
               modulesFile.setUndefinedConstants(v);
-              
+                            
               //load the property
               PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile, new File("./Prismfiles/prop270815.props"));
               propertiesFile.setUndefinedConstants(null);

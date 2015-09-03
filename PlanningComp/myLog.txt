@@ -2,24 +2,24 @@ PRISM-games
 ===========
 
 Version: beta
-Date: Tue Sep 01 13:12:34 BST 2015
+Date: Wed Sep 02 11:49:33 BST 2015
 Hostname: CLPC27
 
 Building model...
 
 Computing reachable states...
  5704 states
-Reachable states exploration and model construction done in 0.182 secs.
+Reachable states exploration and model construction done in 0.174 secs.
 Sorting reachable states list...
 
-Time for model construction: 0.214 seconds.
+Time for model construction: 0.203 seconds.
 Building reward structure...
 Computing rewards...
 Starting expected reachability...
 Starting Prob1 (minmax)...
 Prob1 (minmax) took 4 iterations and 0.006 seconds.
 Starting Prob1 (minmax)...
-Prob1 (minmax) took 4 iterations and 0.013 seconds.
+Prob1 (minmax) took 4 iterations and 0.012 seconds.
 Starting Prob1 (minmax)...
 Prob1 (minmax) took 5 iterations and 0.009 seconds.
 Starting Prob1 (minmax)...
@@ -27,11 +27,11 @@ Starting Prob0 (minmax)...
 target=2484, inf=0, rest=3220
 Starting value iteration (minmax)...
 Value iteration (minmax) took 13 iterations and 0.02 seconds.
-Expected reachability took 0.069 seconds.
+Expected reachability took 0.065 seconds.
 
 Value in the initial state: 0.0
 
-Time for model checking: 0.097 seconds.
+Time for model checking: 0.092 seconds.
 
 Result: 0.0 (value in the initial state)
 
@@ -39,4 +39,4 @@ Generating random path with time limit 100.0...
 
 Warning: Path terminated before time 100.0 because maximum path length (10) was reached.
 
-Generated path: 7 steps (exported to .\myfile.txt)
+Generated path: 4 steps (exported to .\myfile.txt)
