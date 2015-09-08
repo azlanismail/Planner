@@ -2,17 +2,17 @@ PRISM-games
 ===========
 
 Version: beta
-Date: Mon Sep 07 14:09:10 BST 2015
+Date: Tue Sep 08 12:06:57 BST 2015
 Hostname: CLPC27
 
 Building model...
 
 Computing reachable states...
  3 states
-Reachable states exploration and model construction done in 0.034 secs.
+Reachable states exploration and model construction done in 0.038 secs.
 Sorting reachable states list...
 
-Time for model construction: 0.037 seconds.
+Time for model construction: 0.041 seconds.
 Building reward structure...
 Computing rewards...
 Starting expected reachability...
@@ -22,11 +22,11 @@ Starting Prob1 (maxmin)...
 Starting Prob0 (maxmin)...
 target=1, inf=0, rest=2
 Starting value iteration (maxmin)...
-Value iteration (maxmin) took 3 iterations and 0.0 seconds.
-Expected reachability took 0.002 seconds.
+Value iteration (maxmin) took 3 iterations and 0.001 seconds.
+Expected reachability took 0.004 seconds.
 
 Value in the initial state: 1.0
 
-Time for model checking: 0.016 seconds.
+Time for model checking: 0.019 seconds.
 
 Result: 1.0 (value in the initial state)

@@ -74,13 +74,14 @@ public class PrismChecker {
              //  simPath.generateSimulationPath(modulesFile, null, details, 10, f);
              
                //generate strategy
-               int[] tactics = {3};
+               int[] tactics = {2};
                Strategy straAdapt = new MemorylessDeterministicStrategy(tactics);
                straAdapt.buildProduct(model);
                straAdapt.exportToFile("./myfile.txt");
           
                System.out.println("current memory element : "+straAdapt.getCurrentMemoryElement());
                System.out.println("state description : "+straAdapt.getStateDescription());
+               System.out.println("get next move : "+straAdapt.getNextMove(0));
              
           }
            catch (FileNotFoundException e ) {
@@ -95,7 +96,12 @@ public class PrismChecker {
               // ioe.printStackTrace();
                System.out.println("Error: " + e.getMessage());
                System. exit(1);
-          }
+          } catch (InvalidStrategyStateException e) {
+			// TODO Auto-generated catch block
+        	  //e.printStackTrace();
+        	  System.out.println("Error: " + e.getMessage());
+        	  System. exit(1);
+		}
      }//end of synthesis
       
 }//end of class
