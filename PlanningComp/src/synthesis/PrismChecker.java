@@ -12,6 +12,7 @@ import explicit.*;
 import explicit.Model;
 import explicit.rewards.*;
 import simulator.*;
+import strat.*;
 
 
 public class PrismChecker {
@@ -36,7 +37,7 @@ public class PrismChecker {
               v.addValue("CYCLEMAX", 2);
               v.addValue("TEST", 2);
               
-              ModulesFile modulesFile = prism.parseModelFile(new File("./Prismfiles/mainmodel_v11.smg"));
+              ModulesFile modulesFile = prism.parseModelFile(new File("./Prismfiles/mainmodel_v12.smg"));
               modulesFile.setUndefinedConstants(v);
                             
               //load the property
@@ -68,10 +69,19 @@ public class PrismChecker {
                      System.out.println("Error, file already exists.");
              
              //generate the path
-               GenerateSimulationPath simPath = new GenerateSimulationPath(simEngine, mainLog);
-               String details = "time=100";
-               simPath.generateSimulationPath(modulesFile, null, details, 10, f);
-                 
+             //  GenerateSimulationPath simPath = new GenerateSimulationPath(simEngine, mainLog);
+             //  String details = "time=100";
+             //  simPath.generateSimulationPath(modulesFile, null, details, 10, f);
+             
+               //generate strategy
+               int[] tactics = {3};
+               Strategy straAdapt = new MemorylessDeterministicStrategy(tactics);
+               straAdapt.buildProduct(model);
+               straAdapt.exportToFile("./myfile.txt");
+          
+               System.out.println("current memory element : "+straAdapt.getCurrentMemoryElement());
+               System.out.println("state description : "+straAdapt.getStateDescription());
+             
           }
            catch (FileNotFoundException e ) {
               System.out.println("Error: " + e.getMessage());

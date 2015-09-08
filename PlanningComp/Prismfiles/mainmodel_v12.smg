@@ -25,10 +25,10 @@ global t:[TE..TP] init TE;
 
 //====================================================
 //player environment
-const MIN_LATEN;
-const MAX_LATEN;
-const MAX_TOTAL_LATEN;
-const CUR_LATEN;
+const MIN_LATEN = 10;
+const MAX_LATEN = 1000;
+const MAX_TOTAL_LATEN = 2000;
+const CUR_LATEN = 100;
 module environment
 	rt_delta:[MIN_LATEN..MAX_LATEN] init MIN_LATEN;
 	rt_delta_total:[0..MAX_TOTAL_LATEN] init 0;
@@ -58,22 +58,22 @@ endmodule
 //set the equation for the response time impact
 formula enlim_rt=rt - 1000 >=0 ? (rt-1000 <= MAXRT?rt-1000:MAXRT):0;
 const disim_rt = 1000;
-const MINSERV;
-const MAXSERV;
-const MAXRT;
-const INITRT; 
+const MINSERV = 1;
+const MAXSERV = 4;
+const MAXRT = 5000;
+const INITRT= 100; 
 module qosObserver
 	rt:[0..MAXRT] init INITRT;
 	s:[MINSERV..MAXSERV] init MINSERV;
-	[enlServ] (s < MAXSERV) -> (s'=s+1) & (rt'=enlim_rt + rt_delta);
+	[enlServ] (s < MAXSERV) -> 0.5:(s'=s+1) & (rt'=enlim_rt + rt_delta);
 	[disServ] (s > MINSERV) -> (s'=s+1) & (rt'=disim_rt + rt_delta);
 endmodule
 
 //=============================================
 //defining the utility preferences / weights
 //the values are provided from external 
-const double W_U1;
-const double W_U2;
+const double W_U1 = 0.6;
+const double W_U2 = 0.4;
 
 //=============================================
 //defining the utility functions
