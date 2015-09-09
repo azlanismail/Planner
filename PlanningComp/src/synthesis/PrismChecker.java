@@ -37,11 +37,11 @@ public class PrismChecker {
               v.addValue("CYCLEMAX", 2);
               v.addValue("TEST", 2);
               
-              ModulesFile modulesFile = prism.parseModelFile(new File("./Prismfiles/mainmodel_v12.smg"));
+              ModulesFile modulesFile = prism.parseModelFile(new File("./Prismfiles/smg_example.prism"));
               modulesFile.setUndefinedConstants(v);
                             
               //load the property
-              PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile, new File("./Prismfiles/prop270815.props"));
+              PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile, new File("./Prismfiles/smg_example.props"));
               propertiesFile.setUndefinedConstants(null);
               
               //build and check the model
@@ -74,7 +74,7 @@ public class PrismChecker {
              //  simPath.generateSimulationPath(modulesFile, null, details, 10, f);
              
                //generate strategy
-               int[] tactics = {2};
+               int[] tactics = {3, 2, 1, 4};
                Strategy straAdapt = new MemorylessDeterministicStrategy(tactics);
                straAdapt.buildProduct(model);
                straAdapt.exportToFile("./myfile.txt");
