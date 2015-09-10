@@ -49,7 +49,6 @@ public class PrismChecker {
               Model model = prismEx.buildModel(modulesFile, simEngine);
               Result result = prismEx.modelCheck(model, modulesFile, propertiesFile , propertiesFile.getProperty(0));
               
-              
               //get the outcomes
               System.out.println("The result is "+result.getResult());
               System.out.println(result.getCounterexample());
@@ -60,6 +59,8 @@ public class PrismChecker {
               RewardStruct rw = new RewardStruct();
               SMGRewards smgr = csr.buildSMGRewardStructure((SMG)model, rw, v);
               System.out.println("The reward is "+smgr.getStateReward(3));
+              System.out.println("The current state is "+simEngine.getCurrentState());
+              System.out.println("The number of choice is "+simEngine.getNumChoices());
               
               // write the outcomes into a file
               File f = new File("./myfile.txt");
@@ -69,13 +70,15 @@ public class PrismChecker {
                      System.out.println("Error, file already exists.");
              
              //generate the path
-             //  GenerateSimulationPath simPath = new GenerateSimulationPath(simEngine, mainLog);
-             //  String details = "time=100";
-             //  simPath.generateSimulationPath(modulesFile, null, details, 10, f);
+               //GenerateSimulationPath simPath = new GenerateSimulationPath(simEngine, mainLog);
+               //String details = "time=100";
+               //simPath.generateSimulationPath(modulesFile, null, details, 10, f);
+               
              
-               //generate strategy
-               int[] tactics = {3, 2, 1, 4};
-               Strategy straAdapt = new MemorylessDeterministicStrategy(tactics);
+               //get the number of choice from the simulator
+               int numChoice = simEngine.getNumChoices();
+               int[] ch = new int[numChoice];
+               Strategy straAdapt = new MemorylessDeterministicStrategy(ch);
                straAdapt.buildProduct(model);
                straAdapt.exportToFile("./myfile.txt");
           
