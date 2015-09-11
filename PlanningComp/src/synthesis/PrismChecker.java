@@ -62,7 +62,7 @@ public class PrismChecker {
               System.out.println("The current state is "+simEngine.getCurrentState());
               System.out.println("The number of choice is "+simEngine.getNumChoices());
               
-              // write the outcomes into a file
+              // open a file for writing the outcomes
               File f = new File("./myfile.txt");
                   if(f.createNewFile())
                     System.out.println("Success!");
