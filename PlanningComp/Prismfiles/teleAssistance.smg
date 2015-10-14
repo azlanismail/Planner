@@ -1,0 +1,108 @@
+// Simulating multiple self-adaptive systems in multi-cloud environment
+// by Azlan Ismail
+// features: 
+// a) one coordinator with loop
+// b) two planners
+// c) two qosObservers
+  
+
+smg
+
+// player for the adaptation manager
+player am 
+adaptPlanner, qosObserver, [sel_DrugServ], [sel_MedServ], [sel_Alarmserv]
+endplayer
+
+//player for the environment
+player env 
+environment 
+endplayer
+
+//to control the turn
+const TE=0;
+const TP=1;
+global t:[TE..TP] init TE;
+
+//====================================================
+//player environment
+const MIN_LATEN = 10;
+const MAX_LATEN = 1000;
+const MAX_TOTAL_LATEN = 2000;
+const CUR_LATEN = 100;
+module environment
+	rt_delta:[MIN_LATEN..MAX_LATEN] init MIN_LATEN;
+	rt_delta_total:[0..MAX_TOTAL_LATEN] init 0;
+	
+	//update the network latency
+	[] (t=TE) & (sat=false) & (CUR_LATEN + rt_delta_total < MAX_TOTAL_LATEN) -> 
+					(rt_delta'=CUR_LATEN) & (rt_delta_total'= rt_delta_total + CUR_LATEN) & (t'=TP);
+
+endmodule
+
+//======================================================
+// player am
+
+//check the goal satisfaction
+formula goal=(rt < MAXRT ? true:false);
+module adaptPlanner
+	task:[MIN_TASK..MAX_TASK] init MIN_TASK;
+	sat : bool init false; 
+
+	//make selection
+	[enlServ] (t=TP) & (goal=false) & (s <= MAXSERV) -> (t'=TE);	
+	[disServ] (t=TP) & (goal=false) & (s >= MAXSERV) -> (t'=TE);
+
+	//terminate
+	[] (t=TP) & (goal=true) & (sat=false) -> (sat'=true);
+endmodule
+
+//set the equation for the response time impact
+formula enlim_rt=rt - 1000 >=0 ? (rt-1000 <= MAXRT?rt-1000:MAXRT):0;
+const disim_rt = 1000;
+const MINSERV = 1;
+const MAXSERV = 4;
+const MAXRT = 5000;
+const INITRT= 100; 
+module qosObserver
+	rt:[0..MAXRT] init INITRT;
+	s:[MINSERV..MAXSERV] init MINSERV;
+	[enlServ] (s < MAXSERV) -> 0.5:(s'=s+1) & (rt'=enlim_rt + rt_delta);
+	[disServ] (s > MINSERV) -> (s'=s+1) & (rt'=disim_rt + rt_delta);
+endmodule
+
+//=============================================
+//defining the utility preferences / weights
+//the values are provided from external 
+const double W_U1 = 0.6;
+const double W_U2 = 0.4;
+
+//=============================================
+//defining the utility functions
+
+//u1 -> response time
+formula u1 = (rt>= 0 & rt <= 100 ? 1:
+			(rt>= 101 & rt <= 200 ? 1:
+			(rt>= 201 & rt <= 500 ? 0.99:
+			(rt>= 501 & rt <= 1000 ? 0.90:
+			(rt>= 1001 & rt <= 1500 ? 0.75:
+			(rt>= 1501 & rt <= 2000 ? 0.50:
+			(rt>= 2001 & rt <= 4000 ? 0.25:
+			(rt> 4000 ? 0:0))))))));
+
+//u2 -> cost / number of servers
+formula u2 = (s=0 ? 1 :
+		(s=1 ? 1 :
+		(s=2 ? 0.90 : 
+		(s=3 ? 0.30 :
+		(s=4 ? 0 : 0)))));
+
+
+//==============================================
+//Computing the utility
+rewards "ru"
+	t=TP : u1 * W_U1 + u2 * W_U2;
+endrewards
+
+
+// Labels
+label "done" = s=5 | s=6;
