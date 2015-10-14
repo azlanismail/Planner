@@ -37,10 +37,12 @@ public class PrismChecker {
               v.addValue("CYCLEMAX", 2);
               v.addValue("TEST", 2);
               
+              //ModulesFile modulesFile = prism.parseModelFile(new File("./Prismfiles/mainmodel_v12.smg"));
               ModulesFile modulesFile = prism.parseModelFile(new File("./Prismfiles/smg_example.prism"));
               modulesFile.setUndefinedConstants(v);
                             
               //load the property
+              //PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile, new File("./Prismfiles/prop270815.props"));
               PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile, new File("./Prismfiles/smg_example.props"));
               propertiesFile.setUndefinedConstants(null);
               
@@ -50,24 +52,25 @@ public class PrismChecker {
               Result result = prismEx.modelCheck(model, modulesFile, propertiesFile , propertiesFile.getProperty(0));
               
               //get the outcomes
-              System.out.println("The result is "+result.getResult());
-              System.out.println(result.getCounterexample());
-              System.out.println("Number of num states :"+model.getNumStates());
+              System.out.println("The current state is :"+simEngine.getCurrentState());
+              System.out.println("The number of choice is :"+simEngine.getNumChoices());
+              System.out.println("The result is :"+result.getResult());
+              System.out.println("The result of counter example is :"+result.getCounterexample());
+              System.out.println("Number of states :"+model.getNumStates());
               
               //construct the rewards
               ConstructRewards csr = new ConstructRewards(mainLog);
               RewardStruct rw = new RewardStruct();
               SMGRewards smgr = csr.buildSMGRewardStructure((SMG)model, rw, v);
-              System.out.println("The reward is "+smgr.getStateReward(3));
-              System.out.println("The current state is "+simEngine.getCurrentState());
-              System.out.println("The number of choice is "+simEngine.getNumChoices());
+              //How to set 
+              System.out.println("The reward is :"+smgr.getStateReward(0));
               
               // open a file for writing the outcomes
               File f = new File("./myfile.txt");
-                  if(f.createNewFile())
-                    System.out.println("Success!");
-                  else
-                     System.out.println("Error, file already exists.");
+            //      if(f.createNewFile())
+            //        System.out.println("Success!");
+            //      else
+           //          System.out.println("Error, file already exists.");
              
              //generate the path
                //GenerateSimulationPath simPath = new GenerateSimulationPath(simEngine, mainLog);
@@ -83,7 +86,7 @@ public class PrismChecker {
                straAdapt.exportToFile("./myfile.txt");
           
                System.out.println("current memory element : "+straAdapt.getCurrentMemoryElement());
-               System.out.println("state description : "+straAdapt.getStateDescription());
+               System.out.println("Strategy description : "+straAdapt.getStateDescription());
                System.out.println("get next move : "+straAdapt.getNextMove(0));
              
           }
@@ -96,15 +99,17 @@ public class PrismChecker {
               System. exit(1);
           }
            catch(IOException e) {
-              // ioe.printStackTrace();
                System.out.println("Error: " + e.getMessage());
                System. exit(1);
-          } catch (InvalidStrategyStateException e) {
-			// TODO Auto-generated catch block
-        	  //e.printStackTrace();
+          } 
+           catch (InvalidStrategyStateException e) {
         	  System.out.println("Error: " + e.getMessage());
         	  System. exit(1);
 		}
      }//end of synthesis
+      
+      public void display(){
+    	  System.out.println("Calling from prism");
+      }
       
 }//end of class
