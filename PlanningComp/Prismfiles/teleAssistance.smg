@@ -10,7 +10,7 @@ smg
 
 // player for the adaptation manager
 player con 
-adaptPlanner, target_system, [refreshService], [changeService], [updateWorkflow]
+adaptPlanner, target_system, [refreshService], [updateWorkflow]
 endplayer
 
 //player for the environment
@@ -25,17 +25,17 @@ global t:[TE..TP] init TE;
 
 //====================================================
 //player environment
-const MIN_LATEN = 10;
-const MAX_LATEN = 1000;
-const MAX_TOTAL_LATEN = 2000;
-const CUR_LATEN = 100;
+const MIN_LATEN = 0;
+const MAX_LATEN = 10;
+const MAX_TOTAL_LATEN = 100;
+const CUR_LATEN = 0;
 module environment
-	rt_delta:[MIN_LATEN..MAX_LATEN] init MIN_LATEN;
-	rt_delta_total:[0..MAX_TOTAL_LATEN] init 0;
+	rt_delay:[MIN_LATEN..MAX_LATEN] init MIN_LATEN;
+	rt_delay_total:[0..MAX_TOTAL_LATEN] init 0;
 	
 	//update the network latency
-	[] (t=TE) & (sat=false) & (CUR_LATEN + rt_delta_total < MAX_TOTAL_LATEN) -> 
-					(rt_delta'=CUR_LATEN) & (rt_delta_total'= rt_delta_total + CUR_LATEN) & (t'=TP);
+	[] (t=TE) & (sat=false) & (CUR_LATEN + rt_delay_total < MAX_TOTAL_LATEN) -> 
+					(rt_delay'=CUR_LATEN) & (rt_delay_total'= rt_delay_total + CUR_LATEN) & (t'=TP);
 
 endmodule
 
@@ -43,14 +43,13 @@ endmodule
 // player controller
 
 //check the goal satisfaction
-formula goal=(rt < THRESHOLD_RT ? true:false);
+formula goal=(rt < MAXRT ? true:false);
 module adaptPlanner
-	task:[MIN_TASK..MAX_TASK] init MIN_TASK;
+	//task:[MIN_TASK..MAX_TASK] init MIN_TASK;
 	end : bool init false; //to terminate the adaptation loop
 
 	//make selection
 	[refreshService] (t=TP) & (goal=false) -> (t'=TE);	
-	[changeService]  (t=TP) & (goal=false) -> (t'=TE);
 	[updateWorkflow] (t=TP) & (goal=false) -> (t'=TE);
 
 	//terminate
@@ -58,17 +57,21 @@ module adaptPlanner
 endmodule
 
 //set the equation for the response time impact
-formula enlim_rt=rt - 1000 >=0 ? (rt-1000 <= MAXRT?rt-1000:MAXRT):0;
-const disim_rt = 1000;
-const MINSERV = 1;
-const MAXSERV = 4;
-const MAXRT = 5000;
+//not sure if i need cost/benefit formula
+//formula enlim_rt=rt - 1000 >=0 ? (rt-1000 <= MAXRT?rt-1000:MAXRT):0;
+//const disim_rt = 1000;
+const MAXRT = 1000;
 const INITRT= 100; 
 module target_system
 	rt:[0..MAXRT] init INITRT;
-	s:[MINSERV..MAXSERV] init MINSERV;
-	[ref] (s < MAXSERV) -> 0.5:(s'=s+1) & (rt'=enlim_rt + rt_delta);
-	[disServ] (s > MINSERV) -> (s'=s+1) & (rt'=disim_rt + rt_delta);
+	//not sure what is purpose of defining services
+	s1:[0..3] init 0; //medical service
+	s2:[0..1] init 0; //drug service
+	s3:[0..2] init 0; //alarm service
+
+	//not sure what is the condition and effect, perhaps, compute the total response time
+	[refreshService] (not sure what is the condition) -> (not sure what is effect) & (rt'=enlim_rt + rt_delta);
+	[updateWorkflow] (not sure what is the condition) -> (not sure what is effect) & (rt'=disim_rt + rt_delta);
 endmodule
 
 //=============================================
