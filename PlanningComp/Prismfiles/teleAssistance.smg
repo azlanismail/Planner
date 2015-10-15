@@ -9,8 +9,8 @@
 smg
 
 // player for the adaptation manager
-player am 
-adaptPlanner, qosObserver, [sel_DrugServ], [sel_MedServ], [sel_Alarmserv]
+player con 
+adaptPlanner, target_system, [refreshService], [changeService], [updateWorkflow]
 endplayer
 
 //player for the environment
@@ -40,20 +40,21 @@ module environment
 endmodule
 
 //======================================================
-// player am
+// player controller
 
 //check the goal satisfaction
-formula goal=(rt < MAXRT ? true:false);
+formula goal=(rt < THRESHOLD_RT ? true:false);
 module adaptPlanner
 	task:[MIN_TASK..MAX_TASK] init MIN_TASK;
-	sat : bool init false; 
+	end : bool init false; //to terminate the adaptation loop
 
 	//make selection
-	[enlServ] (t=TP) & (goal=false) & (s <= MAXSERV) -> (t'=TE);	
-	[disServ] (t=TP) & (goal=false) & (s >= MAXSERV) -> (t'=TE);
+	[refreshService] (t=TP) & (goal=false) -> (t'=TE);	
+	[changeService]  (t=TP) & (goal=false) -> (t'=TE);
+	[updateWorkflow] (t=TP) & (goal=false) -> (t'=TE);
 
 	//terminate
-	[] (t=TP) & (goal=true) & (sat=false) -> (sat'=true);
+	[] (t=TP) & (goal=true) & (end=false) -> (end'=true);
 endmodule
 
 //set the equation for the response time impact
@@ -63,10 +64,10 @@ const MINSERV = 1;
 const MAXSERV = 4;
 const MAXRT = 5000;
 const INITRT= 100; 
-module qosObserver
+module target_system
 	rt:[0..MAXRT] init INITRT;
 	s:[MINSERV..MAXSERV] init MINSERV;
-	[enlServ] (s < MAXSERV) -> 0.5:(s'=s+1) & (rt'=enlim_rt + rt_delta);
+	[ref] (s < MAXSERV) -> 0.5:(s'=s+1) & (rt'=enlim_rt + rt_delta);
 	[disServ] (s > MINSERV) -> (s'=s+1) & (rt'=disim_rt + rt_delta);
 endmodule
 
