@@ -68,10 +68,12 @@ module target_system
 	s1:[0..3] init 0; //medical service
 	s2:[0..1] init 0; //drug service
 	s3:[0..2] init 0; //alarm service
+	refresh : bool init false;
+	update : bool init false;
 
-	//not sure what is the condition and effect, perhaps, compute the total response time
-	[refreshService] (not sure what is the condition) -> (not sure what is effect) & (rt'=enlim_rt + rt_delta);
-	[updateWorkflow] (not sure what is the condition) -> (not sure what is effect) & (rt'=disim_rt + rt_delta);
+	//not sure what to be computed
+	[refreshService] (refresh=false) -> (refresh'=true) & (rt'=enlim_rt + rt_delta);
+	[updateWorkflow] (update=false) -> (update'=true) & (rt'=disim_rt + rt_delta);
 endmodule
 
 //=============================================
