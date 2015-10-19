@@ -34,7 +34,10 @@ public class Planner {
 	protected Prism prism;
 	protected Values v;
 	protected ModulesFile modulesFile;
+	protected PropertiesFile propertiesFile;
 	protected SimulatorEngine simEngine;
+	protected Model model;
+	protected Result result;
 	
 		
 	public Planner() throws FileNotFoundException, PrismLangException  
@@ -50,35 +53,53 @@ public class Planner {
     	//for parsing model file
     	modulesFile = prism.parseModelFile(new File("./Prismfiles/smg_example.prism"));
     	
+    	//for parsing property model
+    	propertiesFile = prism.parsePropertiesFile(modulesFile, new File("./Prismfiles/smg_example.props"));
+    	
     	//for building and checking the model
     	simEngine = new SimulatorEngine(prism);
     	  
 	}
 	
+	public void initialisePrism() throws PrismException
+	{
+		prism.initialise();
+	}
+	
+	public void setConstantsforModel() throws PrismLangException
+	{
+		 v.addValue("CYCLEMAX", 2);
+         v.addValue("TEST", 2);
+         modulesFile.setUndefinedConstants(v);
+	}
+	
+	public void setConstantsforProperty() throws PrismLangException
+	{
+		 propertiesFile.setUndefinedConstants(null);
+	}
+	
+	public void buildModelbyPrismEx() throws PrismException
+	{
+		 model = prismEx.buildModel(modulesFile, simEngine);
+	}
+	
+	public void checkModelbyPrismEx() throws PrismLangException, PrismException
+	{
+		 result = prismEx.modelCheck(model, modulesFile, propertiesFile , propertiesFile.getProperty(0));
+	}
 	
     public void synthesis()
     {
           try {
         	 //initialise the prism
-        	 prism.initialise();
+        	 initialisePrism();
 
-             //load the model with the required constant value
-             v.addValue("CYCLEMAX", 2);
-             v.addValue("TEST", 2);
-             
-             //ModulesFile modulesFile = prism.parseModelFile(new File("./Prismfiles/mainmodel_v12.smg"));
-             ModulesFile modulesFile = prism.parseModelFile(new File("./Prismfiles/smg_example.prism"));
-             modulesFile.setUndefinedConstants(v);
-                           
-             //load the property
-             //PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile, new File("./Prismfiles/prop270815.props"));
-             PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile, new File("./Prismfiles/smg_example.props"));
-             propertiesFile.setUndefinedConstants(null);
+        	 setConstantsforModel();
+        	 setConstantsforProperty();
              
              //build and check the model
-             SimulatorEngine simEngine = new SimulatorEngine(prism);
-             Model model = prismEx.buildModel(modulesFile, simEngine);
-             Result result = prismEx.modelCheck(model, modulesFile, propertiesFile , propertiesFile.getProperty(0));
+             buildModelbyPrismEx();           
+             checkModelbyPrismEx();
              
              //get the outcomes
              System.out.println("The current state is :"+simEngine.getCurrentState());
