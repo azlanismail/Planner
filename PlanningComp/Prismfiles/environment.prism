@@ -1,0 +1,23 @@
+// optimal planning for self-adaptation
+// by Azlan Ismail
+  
+
+mdp
+
+//====================================================
+//player environment
+const MIN_DELAY = 0;
+const MAX_DELAY = 10;
+const CUR_DELAY = 5;
+const MAX_TOTAL_DELAY = 100;
+
+module environment
+	rt_delay:[MIN_DELAY..MAX_DELAY] init MIN_DELAY;
+	rt_delay_total:[0..MAX_TOTAL_DELAY] init 0;
+	
+	//update the network latency
+	[] (CUR_DELAY + rt_delay_total < MAX_TOTAL_DELAY) -> 
+		 (rt_delay'=CUR_DELAY)&( rt_delay_total'= rt_delay_total + CUR_DELAY);
+	//how to increment the value from time to time? using formula perhaps? or rewards, perhaps?
+endmodule
+
