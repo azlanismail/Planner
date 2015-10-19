@@ -1,9 +1,5 @@
-// Simulating multiple self-adaptive systems in multi-cloud environment
+// optimal planning for self-adaptation
 // by Azlan Ismail
-// features: 
-// a) one coordinator with loop
-// b) two planners
-// c) two qosObservers
   
 
 smg
@@ -23,19 +19,25 @@ const TE=0;
 const TP=1;
 global t:[TE..TP] init TE;
 
+//to limit the adaptation cycle
+global end : bool init false;
+
 //====================================================
 //player environment
-const MIN_LATEN = 0;
-const MAX_LATEN = 10;
-const MAX_TOTAL_LATEN = 100;
-const CUR_LATEN = 0;
+const MIN_DELAY = 0;
+const MAX_DELAY = 10;
+const CUR_DELAY = 3;
+const MAX_TOTAL_DELAY = 500;
+
+formula 
 module environment
-	rt_delay:[MIN_LATEN..MAX_LATEN] init MIN_LATEN;
-	rt_delay_total:[0..MAX_TOTAL_LATEN] init 0;
+	rt_delay:[MIN_DELAY..MAX_DELAY] init MIN_DELAY;
+	rt_delay_total:[0..MAX_TOTAL_DELAY] init 0;
 	
 	//update the network latency
-	[] (t=TE) & (sat=false) & (CUR_LATEN + rt_delay_total < MAX_TOTAL_LATEN) -> 
-					(rt_delay'=CUR_LATEN) & (rt_delay_total'= rt_delay_total + CUR_LATEN) & (t'=TP);
+	[] (t=TE) & (end=false) & (CUR_DELAY + rt_delay_total < MAX_TOTAL_DELAY) -> 
+		 (rt_delay'=CUR_DELAY)&(rt_delay_total'= rt_delay_total + CUR_DELAY) & (t'=TP);
+	//how to increment the value from time to time? using formula perhaps? or rewards, perhaps?
 
 endmodule
 
@@ -46,7 +48,6 @@ endmodule
 formula goal=(rt < MAXRT ? true:false);
 module adaptPlanner
 	//task:[MIN_TASK..MAX_TASK] init MIN_TASK;
-	end : bool init false; //to terminate the adaptation loop
 
 	//make selection
 	[refreshService] (t=TP) & (goal=false) -> (t'=TE);	
@@ -61,19 +62,20 @@ endmodule
 //formula enlim_rt=rt - 1000 >=0 ? (rt-1000 <= MAXRT?rt-1000:MAXRT):0;
 //const disim_rt = 1000;
 const MAXRT = 1000;
-const INITRT= 100; 
+const INITRT= 0; 
+formula rt_ss = rt_s1 + rt_s2 + rt_s3;
 module target_system
-	rt:[0..MAXRT] init INITRT;
+	rt_wf:[0..MAXRT] init INITRT;
 	//not sure what is purpose of defining services
-	s1:[0..3] init 0; //medical service
-	s2:[0..1] init 0; //drug service
-	s3:[0..2] init 0; //alarm service
+	const rt_s1 = 10; //medical service
+	const rt_s2 = 8; //drug service
+	const rt_s3 = 5; //alarm service
 	refresh : bool init false;
 	update : bool init false;
 
 	//not sure what to be computed
-	[refreshService] (refresh=false) -> (refresh'=true) & (rt'=enlim_rt + rt_delta);
-	[updateWorkflow] (update=false) -> (update'=true) & (rt'=disim_rt + rt_delta);
+	[refreshService] (refresh=false) -> (refresh'=true) & (rt_wf'= rt_ss + rt_delay);
+	[updateWorkflow] (update=false) -> (update'=true) & (rt_wf'= rt_ss + rt_delay);
 endmodule
 
 //=============================================
