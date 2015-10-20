@@ -1,0 +1,10 @@
+<<con>> Pmin=? [F "done"]
+
+<<con>>Pmax=? [F "done"]
+
+<<con>> R{"time"}max=? [F "done"]
+
+P=? [F "done"]
+
+<<con>> R{"time"}min=? [F "done"]
+
