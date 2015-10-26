@@ -1,3 +1,2 @@
 $MD.strat-v0.1
 Adv:
-0 0

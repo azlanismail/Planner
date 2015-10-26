@@ -38,12 +38,15 @@ public class PrismChecker {
               v.addValue("TEST", 2);
               
               //ModulesFile modulesFile = prism.parseModelFile(new File("./Prismfiles/mainmodel_v12.smg"));
-              ModulesFile modulesFile = prism.parseModelFile(new File("./Prismfiles/smg_example.prism"));
+              //ModulesFile modulesFile = prism.parseModelFile(new File("./Prismfiles/smg_example.prism"));
+              ModulesFile modulesFile = prism.parseModelFile(new File("./Prismfiles/teleAssistance.smg"));
               modulesFile.setUndefinedConstants(v);
                             
               //load the property
               //PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile, new File("./Prismfiles/prop270815.props"));
-              PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile, new File("./Prismfiles/smg_example.props"));
+              //PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile, new File("./Prismfiles/smg_example.props"));
+              PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile, new File("./Prismfiles/propTeleAsists.props"));
+              
               propertiesFile.setUndefinedConstants(null);
               
               //build and check the model
@@ -54,9 +57,10 @@ public class PrismChecker {
               //get the outcomes
               System.out.println("The current state is :"+simEngine.getCurrentState());
               System.out.println("The number of choice is :"+simEngine.getNumChoices());
-              System.out.println("The result is :"+result.getResult());
-              System.out.println("The result of counter example is :"+result.getCounterexample());
+              System.out.println("The result for the property is :"+result.getResult());
+              //System.out.println("The result of counter example is :"+result.getCounterexample());
               System.out.println("Number of states :"+model.getNumStates());
+              
               
               //construct the rewards
               ConstructRewards csr = new ConstructRewards(mainLog);

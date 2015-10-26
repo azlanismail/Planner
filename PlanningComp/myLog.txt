@@ -2,17 +2,17 @@ PRISM-games
 ===========
 
 Version: beta
-Date: Fri Oct 16 09:57:14 BST 2015
-Hostname: CLPC27
+Date: Sat Oct 24 12:12:58 BST 2015
+Hostname: Azlan-PC
 
 Building model...
 
 Computing reachable states...
  5 states
-Reachable states exploration and model construction done in 0.037 secs.
+Reachable states exploration and model construction done in 0.018 secs.
 Sorting reachable states list...
 
-Time for model construction: 0.041 seconds.
+Time for model construction: 0.021 seconds.
 Starting bounded probabilistic reachability...
 Bounded probabilistic reachability (maxmin) took 5 iterations and 0.0 seconds.
 
@@ -20,6 +20,6 @@ Number of states satisfying <<1>> P>=0.99 [ F<=5 c=2 ]: 2
 
 Property satisfied in 1 of 1 initial states.
 
-Time for model checking: 0.008 seconds.
+Time for model checking: 0.005 seconds.
 
 Result: true (property satisfied in the initial state)

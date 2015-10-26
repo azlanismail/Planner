@@ -1,8 +1,10 @@
 package adapt.plan;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.FileReader;
+import java.util.Scanner;
 
 import explicit.Model;
 import explicit.PrismExplicit;
@@ -32,15 +34,20 @@ public class Planner {
 	protected PrismSettings ps;
 	protected PrismExplicit prismEx;
 	protected Prism prism;
-	protected Values v;
+	protected Values vm, vp;
 	protected ModulesFile modulesFile;
 	protected PropertiesFile propertiesFile;
 	protected SimulatorEngine simEngine;
 	protected Model model;
 	protected Result result;
+	protected ConstructRewards csr;
+	protected RewardStruct rw;
+	protected SMGRewards smgr;
+	protected Strategy stra;
 	
+	Scanner readMod, readProp;
 		
-	public Planner() throws FileNotFoundException, PrismLangException  
+	public Planner() throws FileNotFoundException, PrismException  
 	{
 		mainLog = new PrismFileLog("./myLog.txt");
         ps = new PrismSettings();
@@ -48,7 +55,8 @@ public class Planner {
         prism = new Prism(mainLog , mainLog );
         
         //for assigning values of constants
-    	v = new Values();
+    	vm = new Values();
+    	vp = new Values();
     	
     	//for parsing model file
     	modulesFile = prism.parseModelFile(new File("./Prismfiles/smg_example.prism"));
@@ -58,29 +66,61 @@ public class Planner {
     	
     	//for building and checking the model
     	simEngine = new SimulatorEngine(prism);
-    	  
+   	  
 	}
 	
 	public void initialisePrism() throws PrismException
 	{
 		prism.initialise();
 	}
-	
-	public void setConstantsforModel() throws PrismLangException
+	public void setConstantsforModel(String inFile) throws PrismLangException, FileNotFoundException
 	{
-		 v.addValue("CYCLEMAX", 2);
-         v.addValue("TEST", 2);
-         modulesFile.setUndefinedConstants(v);
+		readMod = new Scanner(new BufferedReader(new FileReader(inFile)));
+		//read.useDelimiter(",");
+		String param = null;
+		int val = -1;
+		int count = 0;
+		while (readMod.hasNext()) {
+			 param = readMod.next();
+			 val = Integer.parseInt(readMod.next());
+			 vm.addValue(param, val);
+			 count++;
+        }
+		if (count > 0)
+			modulesFile.setUndefinedConstants(vm);
+		else
+			modulesFile.setUndefinedConstants(null);
 	}
 	
-	public void setConstantsforProperty() throws PrismLangException
+	public void setConstantsforProperty(String inFile) throws PrismLangException, FileNotFoundException
 	{
-		 propertiesFile.setUndefinedConstants(null);
+		readProp = new Scanner(new BufferedReader(new FileReader(inFile)));
+		String param = null;
+		int val = -1;
+		int count = 0;
+		while (readProp.hasNext()) {
+			 param = readProp.next();
+			 val = Integer.parseInt(readProp.next());
+			 vp.addValue(param, val);
+			 count++;
+        }
+		if (count > 0)
+			propertiesFile.setUndefinedConstants(vp);
+		else
+			propertiesFile.setUndefinedConstants(null);
 	}
-	
+
 	public void buildModelbyPrismEx() throws PrismException
 	{
 		 model = prismEx.buildModel(modulesFile, simEngine);
+	}
+	
+	public void buildRewards() throws PrismException
+	{
+		//construct the rewards
+	    csr = new ConstructRewards(mainLog);
+	    rw = new RewardStruct();
+	    smgr = csr.buildSMGRewardStructure((SMG)model, rw, vp);
 	}
 	
 	public void checkModelbyPrismEx() throws PrismLangException, PrismException
@@ -88,74 +128,79 @@ public class Planner {
 		 result = prismEx.modelCheck(model, modulesFile, propertiesFile , propertiesFile.getProperty(0));
 	}
 	
-    public void synthesis()
+    
+    
+    public void outcomefromSimEngine() throws PrismException
     {
-          try {
-        	 //initialise the prism
-        	 initialisePrism();
+    	System.out.println("The current state is :"+simEngine.getCurrentState());
+        System.out.println("The number of choice is :"+simEngine.getNumChoices());
+    }
+	
+    public void outcomefromModelChecking()
+    {
+    	 System.out.println("The result is :"+result.getResult());
+    }
+    
+    public void outcomefromModelBuilding()
+    {
+    	System.out.println("Number of states :"+model.getNumStates());
+    }
+    
+    public void outcomefromRewards()
+    {
+    	System.out.println("The reward at initial state is :"+smgr.getStateReward(0));
+    }
+    
+    
+    public void buildStrategy() throws PrismException
+    {
+    	//get the number of choice from the simulator
+    	int numChoice = simEngine.getNumChoices();
+        int[] ch = new int[numChoice];
+        stra = new MemorylessDeterministicStrategy(ch);
+    	stra.buildProduct(model);
+    }
+    
+    public void exportStrategy(String straFile)
+    {
+    	stra.exportToFile(straFile);
+    }
+    
+    public void outcomefromStrategyGeneration() throws InvalidStrategyStateException
+    {
+    	  System.out.println("current memory element : "+stra.getCurrentMemoryElement());
+          System.out.println("Strategy description : "+stra.getStateDescription());
+          System.out.println("get next move : "+stra.getNextMove(0));
+    }
 
-        	 setConstantsforModel();
-        	 setConstantsforProperty();
-             
-             //build and check the model
-             buildModelbyPrismEx();           
-             checkModelbyPrismEx();
-             
-             //get the outcomes
-             System.out.println("The current state is :"+simEngine.getCurrentState());
-             System.out.println("The number of choice is :"+simEngine.getNumChoices());
-             System.out.println("The result is :"+result.getResult());
-             System.out.println("The result of counter example is :"+result.getCounterexample());
-             System.out.println("Number of states :"+model.getNumStates());
-             
-             //construct the rewards
-             ConstructRewards csr = new ConstructRewards(mainLog);
-             RewardStruct rw = new RewardStruct();
-             SMGRewards smgr = csr.buildSMGRewardStructure((SMG)model, rw, v);
-             //How to set 
-             System.out.println("The reward is :"+smgr.getStateReward(0));
-             
-             // open a file for writing the outcomes
-             File f = new File("./myfile.txt");
-           //      if(f.createNewFile())
-           //        System.out.println("Success!");
-           //      else
-          //          System.out.println("Error, file already exists.");
-            
-            //generate the path
-              //GenerateSimulationPath simPath = new GenerateSimulationPath(simEngine, mainLog);
-              //String details = "time=100";
-              //simPath.generateSimulationPath(modulesFile, null, details, 10, f);
-              
-            
-              //get the number of choice from the simulator
-              int numChoice = simEngine.getNumChoices();
-              int[] ch = new int[numChoice];
-              Strategy straAdapt = new MemorylessDeterministicStrategy(ch);
-              straAdapt.buildProduct(model);
-              straAdapt.exportToFile("./myfile.txt");
+	public void synthesis() throws PrismException, InvalidStrategyStateException, FileNotFoundException
+    {
+          
+    	 //initialise the prism
+    	 initialisePrism();
+
+    	 //read constants 
+    	 setConstantsforModel("./IOFiles/ModelConstants.txt");
+    	 setConstantsforProperty("./IOFiles/PropConstants.txt");
          
-              System.out.println("current memory element : "+straAdapt.getCurrentMemoryElement());
-              System.out.println("Strategy description : "+straAdapt.getStateDescription());
-              System.out.println("get next move : "+straAdapt.getNextMove(0));
-            
-         }
-          catch (FileNotFoundException e ) {
-             System.out.println("Error: " + e.getMessage());
-             System. exit(1);
-         }
-          catch (PrismException e ) {
-             System.out.println("Error: " + e.getMessage());
-             System. exit(1);
-         }
-          catch(IOException e) {
-              System.out.println("Error: " + e.getMessage());
-              System. exit(1);
-         } 
-          catch (InvalidStrategyStateException e) {
-       	  System.out.println("Error: " + e.getMessage());
-       	  System. exit(1);
-		}
+         //build and check the model
+         buildModelbyPrismEx();           
+         checkModelbyPrismEx();
+         
+         buildRewards();
+         outcomefromRewards();
+         
+         //get the outcomes
+         outcomefromSimEngine();
+         outcomefromModelBuilding();
+         outcomefromModelChecking();
+         
+                      
+         buildStrategy();
+         exportStrategy("./IOFiles/strategy.txt");
+         
+         outcomefromStrategyGeneration(); 
+        
     }//end of synthesis
      
      public void display(){
@@ -170,13 +215,26 @@ public class Planner {
  		//b) latency data - to support the environment player
  		//c) adaptation goals - to support the am player
  		//d) configuration data - to support the am player
- 			
- 	
- 	
+ 				
+ 		Planner plan;
  		
- 		Planner plan = new Planner();
-         plan.synthesis();
+		try {
+			
+			plan = new Planner();
+			plan.synthesis();
+			
+		} catch (FileNotFoundException e ) {
+            System.out.println("Error: " + e.getMessage());
+            System. exit(1);
+        }
+         catch (PrismException e ) {
+            System.out.println("Error: " + e.getMessage());
+            System. exit(1);
+        }
+         catch (InvalidStrategyStateException e) {
+      	  System.out.println("Error: " + e.getMessage());
+      	  System. exit(1);
+		}
          
  	}
-
 }
