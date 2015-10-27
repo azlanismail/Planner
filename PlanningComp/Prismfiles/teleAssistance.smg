@@ -52,8 +52,8 @@ module adaptPlanner
 	//task:[MIN_TASK..MAX_TASK] init MIN_TASK;
 
 	//make selection
-	[refreshService] (t=TP) & (goal=false) -> (t'=TE);	
-	[updateWorkflow] (t=TP) & (goal=false) -> (t'=TE);
+	[updateWorkflow] (t=TP) & (goal=false) -> (t'=TE);	
+	[refreshService] (t=TP) & (goal=false) -> (t'=TE);
 
 	//terminate
 	[] (t=TP) & (goal=true) & (end=false) -> (end'=true);
