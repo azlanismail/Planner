@@ -26,30 +26,39 @@ import simulator.SimulatorEngine;
 import strat.InvalidStrategyStateException;
 import strat.MemorylessDeterministicStrategy;
 import strat.Strategy;
-import synthesis.PrismChecker;
+
+
 
 public class Planner {
 
-	protected PrismLog mainLog;
-	protected PrismSettings ps;
-	protected PrismExplicit prismEx;
-	protected Prism prism;
-	protected Values vm, vp;
-	protected ModulesFile modulesFile;
-	protected PropertiesFile propertiesFile;
-	protected SimulatorEngine simEngine;
-	protected Model model;
-	protected Result result;
-	protected ConstructRewards csr;
-	protected RewardStruct rw;
-	protected SMGRewards smgr;
-	protected Strategy stra;
+	PrismLog mainLog;
+	PrismSettings ps;
+	PrismExplicit prismEx;
+	Prism prism;
+	Values vm, vp;
+	ModulesFile modulesFile;
+	PropertiesFile propertiesFile;
+	SimulatorEngine simEngine;
+	Model model, builtStra;
+	Result result;
+	ConstructRewards csr;
+	RewardStruct rw;
+	SMGRewards smgr;
+	Strategy stra;
 	
-	Scanner readMod, readProp;
+	String logPath = "./myLog.txt";
+	String modelPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\Prismfiles\\smg_example.prism";
+	String propPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\Prismfiles\\smg_example.props";
+	String modelConstPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\ModelConstants.txt";
+	String propConstPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\PropConstants.txt";
+	String expStratPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\strategy.txt";
+	String transPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\transition.txt";
+	
 		
-	public Planner() throws FileNotFoundException, PrismException  
+	public Planner()
 	{
-		mainLog = new PrismFileLog("./myLog.txt");
+		
+		mainLog = new PrismFileLog(logPath);
         ps = new PrismSettings();
         prismEx = new PrismExplicit(mainLog, ps);
         prism = new Prism(mainLog , mainLog );
@@ -57,12 +66,22 @@ public class Planner {
         //for assigning values of constants
     	vm = new Values();
     	vp = new Values();
-    	
+        			
     	//for parsing model file
-    	modulesFile = prism.parseModelFile(new File("./Prismfiles/smg_example.prism"));
+    	try {
+			modulesFile = prism.parseModelFile(new File(modelPath));
+		} catch (FileNotFoundException | PrismLangException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     	
     	//for parsing property model
-    	propertiesFile = prism.parsePropertiesFile(modulesFile, new File("./Prismfiles/smg_example.props"));
+    	try {
+			propertiesFile = prism.parsePropertiesFile(modulesFile, new File(propPath));
+		} catch (FileNotFoundException | PrismLangException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     	
     	//for building and checking the model
     	simEngine = new SimulatorEngine(prism);
@@ -73,9 +92,10 @@ public class Planner {
 	{
 		prism.initialise();
 	}
+	
 	public void setConstantsforModel(String inFile) throws PrismLangException, FileNotFoundException
 	{
-		readMod = new Scanner(new BufferedReader(new FileReader(inFile)));
+		Scanner readMod = new Scanner(new BufferedReader(new FileReader(inFile)));
 		//read.useDelimiter(",");
 		String param = null;
 		int val = -1;
@@ -90,11 +110,13 @@ public class Planner {
 			modulesFile.setUndefinedConstants(vm);
 		else
 			modulesFile.setUndefinedConstants(null);
+		
+		readMod.close();
 	}
 	
 	public void setConstantsforProperty(String inFile) throws PrismLangException, FileNotFoundException
 	{
-		readProp = new Scanner(new BufferedReader(new FileReader(inFile)));
+		Scanner readProp = new Scanner(new BufferedReader(new FileReader(inFile)));
 		String param = null;
 		int val = -1;
 		int count = 0;
@@ -151,21 +173,32 @@ public class Planner {
     	System.out.println("The reward at initial state is :"+smgr.getStateReward(0));
     }
     
-    
+    /**
+     * This function is used to build strategy based on Memoryless Deterministic Strategy
+     * @throws PrismException
+     */
     public void buildStrategy() throws PrismException
     {
     	//get the number of choice from the simulator
     	int numChoice = simEngine.getNumChoices();
         int[] ch = new int[numChoice];
         stra = new MemorylessDeterministicStrategy(ch);
-    	stra.buildProduct(model);
+    	builtStra = stra.buildProduct(model);    	
     }
+    
+    public void exportTrans(String transPath) throws PrismException
+    {
+    	File transFile = new File(transPath);
+    	builtStra.exportToPrismExplicitTra(transFile);
+    }
+    
     
     public void exportStrategy(String straFile)
     {
     	stra.exportToFile(straFile);
     }
     
+   
     public void outcomefromStrategyGeneration() throws InvalidStrategyStateException
     {
     	  System.out.println("current memory element : "+stra.getCurrentMemoryElement());
@@ -173,33 +206,108 @@ public class Planner {
           System.out.println("get next move : "+stra.getNextMove(0));
     }
 
-	public void synthesis() throws PrismException, InvalidStrategyStateException, FileNotFoundException
+    /**
+     * This function is used to provide the required strategy to the adaptation engine
+     * @return
+     */
+    public int getStrategy()
+    {
+    	int choice = 0;
+    	//extract from transition file
+    	//perhaps i should only read the state where the adaptation action is selected
+    	return choice;
+    }
+    
+    private void readTransition(String transPath) throws FileNotFoundException
+    {
+    	Scanner readMod = new Scanner(new BufferedReader(new FileReader(transPath)));
+		//read.useDelimiter(",");
+		String param = null;
+		int val = -1;
+		int count = 0;
+		while (readMod.hasNext()) {
+			 param = readMod.next();
+			 val = Integer.parseInt(readMod.next());
+			 vm.addValue(param, val);
+			 count++;
+        }
+		
+		readMod.close();
+    }
+    
+    
+	public void synthesis() 
     {
           
     	 //initialise the prism
-    	 initialisePrism();
+    	 try {
+			initialisePrism();
+		} catch (PrismException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
     	 //read constants 
-    	 setConstantsforModel("./IOFiles/ModelConstants.txt");
-    	 setConstantsforProperty("./IOFiles/PropConstants.txt");
+    	 try {
+			setConstantsforModel(modelConstPath);
+			setConstantsforProperty(propConstPath);
+		} catch (PrismLangException | FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
          
          //build and check the model
-         buildModelbyPrismEx();           
-         checkModelbyPrismEx();
+         try {
+			buildModelbyPrismEx();
+			checkModelbyPrismEx();
+		} catch (PrismException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
          
-         buildRewards();
+         try {
+			buildRewards();
+		} catch (PrismException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+         
          outcomefromRewards();
          
          //get the outcomes
-         outcomefromSimEngine();
+         try {
+			outcomefromSimEngine();
+		} catch (PrismException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+         
          outcomefromModelBuilding();
          outcomefromModelChecking();
          
                       
-         buildStrategy();
-         exportStrategy("./IOFiles/strategy.txt");
+         try {
+			buildStrategy();
+		} catch (PrismException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
          
-         outcomefromStrategyGeneration(); 
+         exportStrategy(expStratPath);
+         
+         try {
+			exportTrans(transPath);
+		} catch (PrismException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+         
+         try {
+			outcomefromStrategyGeneration();
+		} catch (InvalidStrategyStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
         
     }//end of synthesis
      
@@ -215,26 +323,18 @@ public class Planner {
  		//b) latency data - to support the environment player
  		//c) adaptation goals - to support the am player
  		//d) configuration data - to support the am player
- 				
- 		Planner plan;
- 		
-		try {
+    	//String logPath = "./myLog.txt";
+ 	    //String modelPath = "./Prismfiles/smg_example.prism";
+ 	    //String propPath = "./Prismfiles/smg_example.props";
+ 	    //String modelConstPath = "./IOFiles/ModelConstants.txt";
+ 	    //String propConstPath = "./IOFiles/PropConstants.txt";
+ 	    //String expStratPath = "./IOFiles/strategy.txt";
+ 	    
+ 	    
+ 		Planner plan = new Planner();
+	    plan.synthesis();
 			
-			plan = new Planner();
-			plan.synthesis();
-			
-		} catch (FileNotFoundException e ) {
-            System.out.println("Error: " + e.getMessage());
-            System. exit(1);
-        }
-         catch (PrismException e ) {
-            System.out.println("Error: " + e.getMessage());
-            System. exit(1);
-        }
-         catch (InvalidStrategyStateException e) {
-      	  System.out.println("Error: " + e.getMessage());
-      	  System. exit(1);
-		}
+
          
  	}
 }
