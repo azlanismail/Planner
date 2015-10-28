@@ -19,41 +19,24 @@ const TE=0;
 const TP=1;
 global t:[TE..TP] init TE;
 
-//to limit the adaptation cycle
+//to limit the adaptation cycle (absorbing state)
 global end : bool init false;
-global goal : bool init false;
-//====================================================
-//player environment
-const MIN_DELAY = 0;
-const MAX_DELAY = 10;
-const CUR_DELAY = 3;
-const MAX_TOTAL_DELAY = 500;
 
-
-module environment
-	rt_delay:[MIN_DELAY..MAX_DELAY] init MIN_DELAY;
-	rt_delay_total:[0..MAX_TOTAL_DELAY] init 0;
-	
-	//update the network latency
-	[] (t=TE) & (end=false) & (CUR_DELAY + rt_delay_total < MAX_TOTAL_DELAY) -> 
-		 (rt_delay'=CUR_DELAY)&(rt_delay_total'= rt_delay_total + CUR_DELAY) & (t'=TP);
-	//how to increment the value from time to time? using formula perhaps? or rewards, perhaps?
-
-endmodule
 
 //======================================================
 // player controller
 
-//check the goal satisfaction
+//define the threshold
 const THRESHOLD_RT = 5000;
 
-//formula goal=(rt_wf < THRESHOLD_RT ? true:false);
+// to compute the satisfaction of adaptation
+formula goal=(rt_wf<THRESHOLD_RT?true:false);
+const UNCERTAINTY = 1;
 module adaptPlanner
-	//task:[MIN_TASK..MAX_TASK] init MIN_TASK;
-
+	
 	//make selection
-	[updateWorkflow] (t=TP) & (goal=false) -> (t'=TE);	
-	[refreshService] (t=TP) & (goal=false) -> (t'=TE);
+	[updateWorkflow] (t=TP) & (goal=false) & (UNCERTAINTY=1) -> (t'=TE);	
+	[refreshService] (t=TP) & (goal=false) & (UNCERTAINTY=1) -> (t'=TE);
 
 	//terminate
 	[] (t=TP) & (goal=true) & (end=false) -> (end'=true);
@@ -71,12 +54,39 @@ const rt_s3 = 5; //alarm service
 global rt_wf:[0..MAXRT] init INITRT;
 formula rt_ss = rt_s1 + rt_s2 + rt_s3;
 
+
 module target_system
-	//not sure what to be computed
-	//[refreshService] (goal=false) -> 0.6:(goal'=true) & (rt_wf'= rt_ss + rt_delay) + 0.4:(goal'=false) & (rt_wf'= rt_ss + rt_delay);
-	[refreshService] (goal=false) -> (goal'=true) & (rt_wf'= rt_ss + rt_delay);
-	//[updateWorkflow] (goal=false) -> 0.6:(goal'=true) & (rt_wf'= rt_ss + rt_delay) + 0.4:(goal'=false) & (rt_wf'= rt_ss + rt_delay);
-	[updateWorkflow] (goal=false) -> (goal'=true) & (rt_wf'= rt_ss + rt_delay);
+	act1 : bool init false;  // for refresh service
+	act2 : bool init false;  // for update workflow
+	
+	// REFRESH SERVICE
+	// if it has not been selected and suitable for the problematic condition 
+	//			-> select and compute rt and cost and estimate satisfaction
+	[refreshService] (act2=false) -> (act1'=true) & (rt_wf'= rt_ss + rt_delay);
+	
+	// UPDATE WORKFLOW
+	// if it has not been selected and suitable for the problematic condition 
+	//			-> select and compute rt and cost and estimate satisfaction
+	[updateWorkflow] (act1=false) -> (act2'=true) & (rt_wf'= rt_ss + rt_delay);
+endmodule
+
+//====================================================
+//player environment
+const MIN_DELAY = 0;
+const MAX_DELAY = 10;
+const CUR_DELAY = 3;
+const MAX_TOTAL_DELAY = 500;
+
+
+module environment
+	rt_delay:[MIN_DELAY..MAX_DELAY] init MIN_DELAY;
+	rt_delay_total:[0..MAX_TOTAL_DELAY] init 0;
+	
+	//update the network latency
+	[] (t=TE) & (end=false) & (CUR_DELAY + rt_delay_total < MAX_TOTAL_DELAY) -> 
+		 (rt_delay'=CUR_DELAY)&(rt_delay_total'= rt_delay_total + CUR_DELAY) & (t'=TP);
+	//how to increment the value from time to time? using formula perhaps? or rewards, perhaps?
+
 endmodule
 
 //=============================================
