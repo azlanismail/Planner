@@ -6,7 +6,7 @@ smg
 
 // player for the adaptation manager
 player con 
-adaptPlanner, target_system, [refreshService], [updateWorkflow]
+adaptPlanner, target_system, [refreshService], [refreshAllService], [test]
 endplayer
 
 //player for the environment
@@ -21,22 +21,24 @@ global t:[TE..TP] init TE;
 
 //to limit the adaptation cycle (absorbing state)
 global end : bool init false;
+global goal : bool init false;
 
 
 //======================================================
 // player controller
 
 //define the threshold
-const THRESHOLD_RT = 5000;
+const VIOLATED_RT = 10;
 
 // to compute the satisfaction of adaptation
-formula goal=(rt_wf<THRESHOLD_RT?true:false);
+formula cur_stat=(rt_wf<VIOLATED_RT?true:false);
 const UNCERTAINTY = 1;
 module adaptPlanner
 	
 	//make selection
-	[updateWorkflow] (t=TP) & (goal=false) & (UNCERTAINTY=1) -> (t'=TE);	
+	[refreshAllService] (t=TP) & (goal=false) & (UNCERTAINTY=1) -> (t'=TE);	
 	[refreshService] (t=TP) & (goal=false) & (UNCERTAINTY=1) -> (t'=TE);
+        [test] (t=TP) & (goal=false) & (UNCERTAINTY=1) -> (t'=TE);
 
 	//terminate
 	[] (t=TP) & (goal=true) & (end=false) -> (end'=true);
@@ -46,28 +48,33 @@ endmodule
 //not sure if i need cost/benefit formula
 //formula enlim_rt=rt - 1000 >=0 ? (rt-1000 <= MAXRT?rt-1000:MAXRT):0;
 //const disim_rt = 1000;
-const MAXRT = 1000;
+const MAXRT = 20;
 const INITRT= 0; 
-const rt_s1 = 10; //medical service
-const rt_s2 = 8; //drug service
-const rt_s3 = 5; //alarm service
+const rt_s1 = 3; //medical service
+const rt_s2 = 2; //drug service
+const rt_s3 = 3; //alarm service
 global rt_wf:[0..MAXRT] init INITRT;
 formula rt_ss = rt_s1 + rt_s2 + rt_s3;
 
-
+const rs = 10;
+const ra = 4;
 module target_system
 	act1 : bool init false;  // for refresh service
 	act2 : bool init false;  // for update workflow
+	act3 : bool init false;  // for testing
+	
 	
 	// REFRESH SERVICE
 	// if it has not been selected and suitable for the problematic condition 
 	//			-> select and compute rt and cost and estimate satisfaction
-	[refreshService] (act2=false) -> (act1'=true) & (rt_wf'= rt_ss + rt_delay);
+	[refreshService] (act1=false) -> (act1'=true) & (goal'=cur_stat) & (rt_wf'= rs + rt_delay);
 	
 	// UPDATE WORKFLOW
 	// if it has not been selected and suitable for the problematic condition 
 	//			-> select and compute rt and cost and estimate satisfaction
-	[updateWorkflow] (act1=false) -> (act2'=true) & (rt_wf'= rt_ss + rt_delay);
+	[refreshAllService] (act2=false) -> (act2'=true) & (goal'=cur_stat) & (rt_wf'= ra + rt_delay);
+
+	[test] (act3=false) -> (act3'=true) & (goal'=cur_stat) & (rt_wf'= ra + rt_delay);
 endmodule
 
 //====================================================
@@ -97,7 +104,7 @@ endmodule
 //Computing the utility
 //Why I need the reward? to hold the total time?
 rewards "time"
-	goal = true : rt_wf;
+	t = TP : rt_wf;
 endrewards
 
 label "done" = end = true;

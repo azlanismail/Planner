@@ -47,13 +47,13 @@ public class Planner {
 	Strategy stra;
 	
 	String logPath = "./myLog.txt";
-	String modelPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\Prismfiles\\smg_example.prism";
-	String propPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\Prismfiles\\smg_example.props";
+	String modelPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\Prismfiles\\teleAssistance.smg";
+	String propPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\Prismfiles\\propTeleAssistance.props";
 	String modelConstPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\ModelConstants.txt";
 	String propConstPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\PropConstants.txt";
 	String expStratPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\strategy.txt";
 	String transPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\transition.txt";
-	
+
 		
 	public Planner()
 	{
@@ -148,24 +148,31 @@ public class Planner {
 	public void checkModelbyPrismEx() throws PrismLangException, PrismException
 	{
 		 result = prismEx.modelCheck(model, modulesFile, propertiesFile , propertiesFile.getProperty(0));
+		
 	}
-	
-    
     
     public void outcomefromSimEngine() throws PrismException
     {
-    	System.out.println("The current state is :"+simEngine.getCurrentState());
-        System.out.println("The number of choice is :"+simEngine.getNumChoices());
+    	System.out.println("The current state (from simEngine) is :"+simEngine.getCurrentState());
+        System.out.println("The number of choice (from simEngine) is :"+simEngine.getNumChoices());
+        System.out.println("The number of transition (from simEngine) is :"+simEngine.getNumTransitions());
+        System.out.println("The transition list (from simEngine) is:"+simEngine.getTransitionList() );
     }
 	
+    
     public void outcomefromModelChecking()
     {
-    	 System.out.println("The result is :"+result.getResult());
+    	 System.out.println("The result from model checking is :"+result.getResult());
     }
     
     public void outcomefromModelBuilding()
     {
-    	System.out.println("Number of states :"+model.getNumStates());
+    	System.out.println("Number of states (Model Building) :"+model.getNumStates());
+    	System.out.println("Number of transitions (Model Building) :"+model.getNumTransitions());
+    	for(int i=0; i < model.getNumStates(); i++){
+    		System.out.println("Number of choice (Model Building) for state :"+i+ " is :"+model.getNumChoices(i));
+    	}
+    	
     }
     
     public void outcomefromRewards()
@@ -176,14 +183,23 @@ public class Planner {
     /**
      * This function is used to build strategy based on Memoryless Deterministic Strategy
      * @throws PrismException
+     * @throws InvalidStrategyStateException 
      */
-    public void buildStrategy() throws PrismException
-    {
-    	//get the number of choice from the simulator
-    	int numChoice = simEngine.getNumChoices();
-        int[] ch = new int[numChoice];
-        stra = new MemorylessDeterministicStrategy(ch);
-    	builtStra = stra.buildProduct(model);    	
+    public void buildStrategy() throws PrismException, InvalidStrategyStateException
+    {  
+		
+    	//for (int i=0; i < model.getNumStates(); i++)
+       // {
+    		int[] ch = new int[model.getNumChoices(4)];
+    		stra = new MemorylessDeterministicStrategy(ch);
+    		stra.init(0);
+    	//	System.out.println("state 1 = " + 3 + " strategy :"+stra.getNextMove(1));
+    		//stra.updateMemory(model.getNumChoices(2), 2);
+    		//System.out.println("state 2 = " + 3 + " strategy :"+stra.getNextMove(2));
+    		//stra.updateMemory(0, 0);
+    		//
+        	builtStra = stra.buildProduct(model);
+       // }            	
     }
     
     public void exportTrans(String transPath) throws PrismException
@@ -213,7 +229,7 @@ public class Planner {
     public int getStrategy()
     {
     	int choice = 0;
-    	//extract from transition file
+    	//extract from adv file
     	//perhaps i should only read the state where the adaptation action is selected
     	return choice;
     }
@@ -265,30 +281,33 @@ public class Planner {
 			e.printStackTrace();
 		}
          
-         try {
-			buildRewards();
-		} catch (PrismException e) {
+      //   try {
+		//	buildRewards();
+	//	} catch (PrismException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	//		e.printStackTrace();
+	//	}
          
-         outcomefromRewards();
-         
-         //get the outcomes
-         try {
-			outcomefromSimEngine();
-		} catch (PrismException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+       //  outcomefromRewards();
          
          outcomefromModelBuilding();
          outcomefromModelChecking();
          
+         //get the outcomes
+       //  try {
+		//	outcomefromSimEngine();
+		//} catch (PrismException e) {
+			// TODO Auto-generated catch block
+		//	e.printStackTrace();
+		//}
+                 
                       
          try {
 			buildStrategy();
 		} catch (PrismException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidStrategyStateException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
