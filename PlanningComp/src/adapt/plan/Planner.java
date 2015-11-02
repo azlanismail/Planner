@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Scanner;
 
+import explicit.Distribution;
 import explicit.Model;
 import explicit.PrismExplicit;
 import explicit.SMG;
@@ -25,6 +26,7 @@ import prism.Result;
 import simulator.SimulatorEngine;
 import strat.InvalidStrategyStateException;
 import strat.MemorylessDeterministicStrategy;
+import strat.Strategies;
 import strat.Strategy;
 
 
@@ -44,15 +46,16 @@ public class Planner {
 	ConstructRewards csr;
 	RewardStruct rw;
 	SMGRewards smgr;
-	Strategy stra;
+	Strategy stra, stra2;
 	
 	String logPath = "./myLog.txt";
 	String modelPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\Prismfiles\\teleAssistance.smg";
 	String propPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\Prismfiles\\propTeleAssistance.props";
 	String modelConstPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\ModelConstants.txt";
 	String propConstPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\PropConstants.txt";
-	String expStratPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\strategy.txt";
-	String transPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\transition.txt";
+	String expStratPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\strategy.adv";
+	String expStratPath2 = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\strategy2.adv";
+	String transPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\transition";
 
 		
 	public Planner()
@@ -148,6 +151,9 @@ public class Planner {
 	public void checkModelbyPrismEx() throws PrismLangException, PrismException
 	{
 		 result = prismEx.modelCheck(model, modulesFile, propertiesFile , propertiesFile.getProperty(0));
+		// prismEx.exportTransToFile(arg0, arg1, arg2, arg3);
+		 //only for DTMCs/CTMCs
+		 //prismEx.doSteadyState(model);
 		
 	}
     
@@ -181,19 +187,32 @@ public class Planner {
     }
     
     /**
-     * This function is used to build strategy based on Memoryless Deterministic Strategy
+     * Objective: It is used to build strategy based on Memoryless Deterministic Strategy
      * @throws PrismException
      * @throws InvalidStrategyStateException 
      */
     public void buildStrategy() throws PrismException, InvalidStrategyStateException
     {  
-		
-    	//for (int i=0; i < model.getNumStates(); i++)
-       // {
-    		int[] ch = new int[model.getNumChoices(4)];
-    		stra = new MemorylessDeterministicStrategy(ch);
-    		stra.init(0);
-    	//	System.out.println("state 1 = " + 3 + " strategy :"+stra.getNextMove(1));
+    	//get all choices for each state
+		int[] ch = new int[model.getNumStates()];
+    	for (int i=0; i < model.getNumStates(); i++)
+        	ch[i] = model.getNumChoices(i)-1;
+    	
+    	//create the strategy
+    	stra = new MemorylessDeterministicStrategy(ch);
+//    	stra.init(0);
+//    	Distribution dist = new Distribution();
+//    	for (int i=0; i < model.getNumStates(); i++)
+//    	{
+//    		dist = stra.getNextMove(i);
+//    		
+//    		stra.updateMemory(ch[i], i);
+//    	}
+    	
+		System.out.println("The memory size is :"+stra.getMemorySize());
+		System.out.println("The type of the model is :"+model.getClass());
+		stra.init(0);
+    	//	System.out.println("state 1 = " + 3 + " strategy :"+stra.getNextMove(4));
     		//stra.updateMemory(model.getNumChoices(2), 2);
     		//System.out.println("state 2 = " + 3 + " strategy :"+stra.getNextMove(2));
     		//stra.updateMemory(0, 0);
@@ -202,16 +221,30 @@ public class Planner {
        // }            	
     }
     
-    public void exportTrans(String transPath) throws PrismException
+    /**
+     * Objective: It extracts all the possible transitions (before synthesizing)
+     * @throws PrismException
+     */
+    public void exportTrans() throws PrismException
     {
     	File transFile = new File(transPath);
     	builtStra.exportToPrismExplicitTra(transFile);
+    	//model.exportToPrismExplicit(transPath);
     }
     
     
-    public void exportStrategy(String straFile)
+    /**
+     * Objective: to export the synthesize strategy into an external file
+     * @param straFile1
+     * @param straFile2
+     * @throws  
+     */
+    public void exportStrategy(String straFile1, String straFile2)
     {
-    	stra.exportToFile(straFile);
+    	stra.exportToFile(straFile1);
+    	stra2 = Strategies.loadStrategyFromFile(straFile1);
+    	stra2.exportToFile(straFile2);
+    	//mdstrat = mdstrat2 = null;
     }
     
    
@@ -219,21 +252,46 @@ public class Planner {
     {
     	  System.out.println("current memory element : "+stra.getCurrentMemoryElement());
           System.out.println("Strategy description : "+stra.getStateDescription());
-          System.out.println("get next move : "+stra.getNextMove(0));
     }
 
+    
     /**
-     * This function is used to provide the required strategy to the adaptation engine
+     * Objective: It is used to provide the required strategy to the adaptation engine
      * @return
+     * @throws FileNotFoundException
      */
-    public int getStrategy()
+    public int getStrategy() throws FileNotFoundException
     {
+    	//this function needs to be tested....
+    	//so far, its reasonably ok.
+    	
     	int choice = 0;
-    	//extract from adv file
-    	//perhaps i should only read the state where the adaptation action is selected
+    	int decState = 4;
+    	Scanner read = new Scanner(new BufferedReader(new FileReader(expStratPath)));
+		//read.useDelimiter(",");
+		int inData = -1;
+		
+		//need to skip the first two lines
+		read.nextLine(); read.nextLine();
+		while (read.hasNextLine()) {
+			 inData = read.nextInt();
+			 //find the decision state
+			 if (inData == decState){
+				 //pick up the selected choice
+				 choice = read.nextInt();
+				 break;
+			 }
+        }
+		read.close();
+		System.out.println("Obtained strategy is "+choice);
     	return choice;
     }
     
+    /**
+     * Objective: Read data from the transition file which is useful to map with the strategy file.
+     * @param transPath
+     * @throws FileNotFoundException
+     */
     private void readTransition(String transPath) throws FileNotFoundException
     {
     	Scanner readMod = new Scanner(new BufferedReader(new FileReader(transPath)));
@@ -243,7 +301,7 @@ public class Planner {
 		int count = 0;
 		while (readMod.hasNext()) {
 			 param = readMod.next();
-			 val = Integer.parseInt(readMod.next());
+			 val = readMod.nextInt();
 			 vm.addValue(param, val);
 			 count++;
         }
@@ -301,38 +359,38 @@ public class Planner {
 		//	e.printStackTrace();
 		//}
                  
-                      
+        //strategy related process
          try {
+        	 
 			buildStrategy();
+			exportStrategy(expStratPath, expStratPath2);
+			outcomefromStrategyGeneration();
+			getStrategy();
 		} catch (PrismException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InvalidStrategyStateException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-         
-         exportStrategy(expStratPath);
-         
-         try {
-			exportTrans(transPath);
-		} catch (PrismException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-         
-         try {
-			outcomefromStrategyGeneration();
-		} catch (InvalidStrategyStateException e) {
+		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} 
+		}
         
+         try {
+			exportTrans();
+		} catch (PrismException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+         
     }//end of synthesis
      
+	
      public void display(){
    	  System.out.println("Calling from prism");
      }
+     
      
      public static void main(String[] args) {
  		// TODO Auto-generated method stub
@@ -342,14 +400,7 @@ public class Planner {
  		//b) latency data - to support the environment player
  		//c) adaptation goals - to support the am player
  		//d) configuration data - to support the am player
-    	//String logPath = "./myLog.txt";
- 	    //String modelPath = "./Prismfiles/smg_example.prism";
- 	    //String propPath = "./Prismfiles/smg_example.props";
- 	    //String modelConstPath = "./IOFiles/ModelConstants.txt";
- 	    //String propConstPath = "./IOFiles/PropConstants.txt";
- 	    //String expStratPath = "./IOFiles/strategy.txt";
- 	    
- 	    
+
  		Planner plan = new Planner();
 	    plan.synthesis();
 			

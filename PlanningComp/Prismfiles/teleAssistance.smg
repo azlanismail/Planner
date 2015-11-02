@@ -6,7 +6,7 @@ smg
 
 // player for the adaptation manager
 player con 
-adaptPlanner, target_system, [refreshService], [refreshAllService], [test]
+adaptPlanner, target_system, [refreshService], [refreshAllService], [removeService]
 endplayer
 
 //player for the environment
@@ -32,22 +32,24 @@ const VIOLATED_RT = 10;
 
 // to compute the satisfaction of adaptation
 formula cur_stat=(rt_wf<VIOLATED_RT?true:false);
-const UNCERTAINTY = 1;
+const CUR_PROBE = 0;
 module adaptPlanner
 	
+	//0 - means service failure
+	//1 - service not found
+	probe:[0..1] init CUR_PROBE;
+	
 	//make selection
-	[refreshAllService] (t=TP) & (goal=false) & (UNCERTAINTY=1) -> (t'=TE);	
-	[refreshService] (t=TP) & (goal=false) & (UNCERTAINTY=1) -> (t'=TE);
-        [test] (t=TP) & (goal=false) & (UNCERTAINTY=1) -> (t'=TE);
+	
+	[refreshService] (t=TP) & (goal=false) & (probe>=0) -> (t'=TE);
+        [removeService] (t=TP) & (goal=false) & (probe=0) -> (t'=TE);
+	[refreshAllService] (t=TP) & (goal=false) & (probe>=0) -> (t'=TE);	
 
 	//terminate
 	[] (t=TP) & (goal=true) & (end=false) -> (end'=true);
 endmodule
 
-//set the equation for the response time impact
-//not sure if i need cost/benefit formula
-//formula enlim_rt=rt - 1000 >=0 ? (rt-1000 <= MAXRT?rt-1000:MAXRT):0;
-//const disim_rt = 1000;
+
 const MAXRT = 20;
 const INITRT= 0; 
 const rt_s1 = 3; //medical service
@@ -61,7 +63,7 @@ const ra = 4;
 module target_system
 	act1 : bool init false;  // for refresh service
 	act2 : bool init false;  // for update workflow
-	act3 : bool init false;  // for testing
+	act3 : bool init false;  // for removing service
 	
 	
 	// REFRESH SERVICE
@@ -74,7 +76,7 @@ module target_system
 	//			-> select and compute rt and cost and estimate satisfaction
 	[refreshAllService] (act2=false) -> (act2'=true) & (goal'=cur_stat) & (rt_wf'= ra + rt_delay);
 
-	[test] (act3=false) -> (act3'=true) & (goal'=cur_stat) & (rt_wf'= ra + rt_delay);
+	[removeService] (act3=false) -> (act3'=true) & (goal'=cur_stat) & (rt_wf'= ra + rt_delay);
 endmodule
 
 //====================================================
