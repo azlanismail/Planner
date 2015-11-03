@@ -49,9 +49,10 @@ module adaptPlanner
 	probe:[0..1] init CUR_PROBE;
 	
 	//make selection
-	[refreshServiceType] (t=TP) & (goal=false) & (probe>=0) -> (t'=TE);
+	[updateDescription] (t=TP) & (goal=false) & (probe>0) -> (t'=TE);
 	[refreshAllService] (t=TP) & (goal=false) & (probe>=0) -> (t'=TE);	
-        [updateDescription] (t=TP) & (goal=false) & (probe>0) -> (t'=TE);
+	[refreshServiceType] (t=TP) & (goal=false) & (probe>=0) -> (t'=TE);
+       
 	
 
 	//terminate

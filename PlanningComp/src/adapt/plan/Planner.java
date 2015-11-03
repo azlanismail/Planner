@@ -10,6 +10,7 @@ import explicit.Distribution;
 import explicit.Model;
 import explicit.PrismExplicit;
 import explicit.SMG;
+import explicit.STPG;
 import explicit.rewards.ConstructRewards;
 import explicit.rewards.SMGRewards;
 import parser.Values;
@@ -55,16 +56,17 @@ public class Planner {
 	String propConstPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\PropConstants.txt";
 	String expStratPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\strategy.adv";
 	String expStratPath2 = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\strategy2.adv";
-	String transPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\transition";
+	String transPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\transitionbefore";
+	String transPath2 = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\transitionafter";
 
 		
 	public Planner()
 	{
 		
 		mainLog = new PrismFileLog(logPath);
-        ps = new PrismSettings();
-        prismEx = new PrismExplicit(mainLog, ps);
+        //ps = new PrismSettings();
         prism = new Prism(mainLog , mainLog );
+        prismEx = new PrismExplicit(prism.getMainLog(), prism.getSettings());
         
         //for assigning values of constants
     	vm = new Values();
@@ -151,6 +153,7 @@ public class Planner {
 	public void checkModelbyPrismEx() throws PrismLangException, PrismException
 	{
 		 result = prismEx.modelCheck(model, modulesFile, propertiesFile , propertiesFile.getProperty(0));
+		
 		// prismEx.exportTransToFile(arg0, arg1, arg2, arg3);
 		 //only for DTMCs/CTMCs
 		 //prismEx.doSteadyState(model);
@@ -200,36 +203,37 @@ public class Planner {
     	
     	//create the strategy
     	stra = new MemorylessDeterministicStrategy(ch);
-//    	stra.init(0);
-//    	Distribution dist = new Distribution();
-//    	for (int i=0; i < model.getNumStates(); i++)
-//    	{
-//    		dist = stra.getNextMove(i);
-//    		
-//    		stra.updateMemory(ch[i], i);
-//    	}
+    	//stra.init(0);
+    
     	
 		System.out.println("The memory size is :"+stra.getMemorySize());
 		System.out.println("The type of the model is :"+model.getClass());
-		stra.init(0);
-    	//	System.out.println("state 1 = " + 3 + " strategy :"+stra.getNextMove(4));
+		//stra.init(0);
+    	//	
     		//stra.updateMemory(model.getNumChoices(2), 2);
     		//System.out.println("state 2 = " + 3 + " strategy :"+stra.getNextMove(2));
     		//stra.updateMemory(0, 0);
     		//
         	builtStra = stra.buildProduct(model);
+        	System.out.println("Get the initial state :"+builtStra.getFirstInitialState());
+        	//System.out.println("The outcome :"+builtStra);
+        	System.out.println("State list : "+builtStra.getStatesList());
+        
+        	
        // }            	
     }
     
     /**
-     * Objective: It extracts all the possible transitions (before synthesizing)
+     * Objective: It extracts the transitions which have been synthesized
      * @throws PrismException
      */
     public void exportTrans() throws PrismException
     {
     	File transFile = new File(transPath);
-    	builtStra.exportToPrismExplicitTra(transFile);
-    	//model.exportToPrismExplicit(transPath);
+    	model.exportToPrismExplicitTra(transFile);
+   
+    	File transFile2 = new File(transPath2);
+    	builtStra.exportToPrismExplicitTra(transFile2);
     }
     
     
@@ -260,13 +264,15 @@ public class Planner {
      * @return
      * @throws FileNotFoundException
      */
-    public int getStrategy() throws FileNotFoundException
+    public int getAdaptStrategy() throws FileNotFoundException
     {
     	//this function needs to be tested....
     	//so far, its reasonably ok.
     	
     	int choice = 0;
-    	int decState = 4;
+    	int decState = 5;
+    	
+    	//Should be reading from the transition file which has been synthesized
     	Scanner read = new Scanner(new BufferedReader(new FileReader(expStratPath)));
 		//read.useDelimiter(",");
 		int inData = -1;
@@ -363,9 +369,10 @@ public class Planner {
          try {
         	 
 			buildStrategy();
+			exportTrans();
 			exportStrategy(expStratPath, expStratPath2);
 			outcomefromStrategyGeneration();
-			getStrategy();
+			getAdaptStrategy();
 		} catch (PrismException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -373,13 +380,6 @@ public class Planner {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        
-         try {
-			exportTrans();
-		} catch (PrismException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
