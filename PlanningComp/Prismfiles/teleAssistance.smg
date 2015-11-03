@@ -19,32 +19,39 @@ const TE=0;
 const TP=1;
 global t:[TE..TP] init TE;
 
-//to limit the adaptation cycle (absorbing state)
-global end : bool init false;
-global goal : bool init false;
+//to limit the adaptation cycle 
+global end : bool init false;	//(absorbing state)
+global goal : bool init false;	//adaptation goal
 
+//to hold the global response time for the composite service
+//used in two modules
+global rt_composite:[0..MAXRT] init INITRT;
+
+//inputs from the adaptation engine:
+const CUR_PROBE = 1;	//identified probe - is used to decide for the appropriate action
+const MAXRT = 20;	//maximum response time - to limit the goal
+const INITRT= 0; 	//initial response time
+
+//inputs from the adaptation engine: (for estimating the total response time)
+const RT_S1 = 3; //estimated response time for medical service
+const RT_S2 = 2; //estimated response time for drug service
+const RT_S3 = 3; //estimated response time alarm service
+
+//input from the adaptation engine: (in the case of refresh only a service type)
+const SS_CH = 1; //service that needs to be refreshed
 
 //======================================================
 // player controller
 
-//define the threshold
-const VIOLATED_RT = 10;
-const CUR_PROBE = 0;
-
-// to compute the satisfaction of adaptation
-formula cur_stat=(rt_composite<VIOLATED_RT?true:false);
-
 module adaptPlanner
-	
 	//0 - means service failure
 	//1 - service not found
 	probe:[0..1] init CUR_PROBE;
 	
 	//make selection
-	
 	[refreshServiceType] (t=TP) & (goal=false) & (probe>=0) -> (t'=TE);
 	[refreshAllService] (t=TP) & (goal=false) & (probe>=0) -> (t'=TE);	
-        [updateDescription] (t=TP) & (goal=false) & (probe=0) -> (t'=TE);
+        [updateDescription] (t=TP) & (goal=false) & (probe>0) -> (t'=TE);
 	
 
 	//terminate
@@ -52,40 +59,22 @@ module adaptPlanner
 endmodule
 
 
-const MAXRT = 20;
-const INITRT= 0; 
-
-//estimated response time for each service
-const RT_S1 = 3; //medical service
-const RT_S2 = 2; //drug service
-const RT_S3 = 3; //alarm service
-
-//service that needs to be refreshed in the case of refresh only a service type
-const SS_CH = 1; 
-
-//to hold the global response time for the composite service
-global rt_composite:[0..MAXRT] init INITRT;
-
-//to compute the overall service execution time in the case of refresh all services
-formula rt_sall = RT_S1 + RT_S2 + RT_S3;
-
-//to compute a specific service execution time in the case of refresh service type
-formula rt_ss = (SS_CH=1?RT_S1:(SS_CH=2?RT_S2:(SS_CH=3?RT_S3:0)));
-
 module target_system
 	act1 : bool init false;  // for refreshing specific type of service
 	act2 : bool init false;  // for refreshing all services
 	act3 : bool init false;  // for updating service description
 	
 	// REFRESH SPECIFIC TYPE OF SERVICE
-	[refreshServiceType] (act1=false) -> 0.5:(act1'=true) & (goal'=cur_stat) & (rt_composite'= rt_ss + rt_delay) + //if success
-					     0.5:(act1'=false) & (goal'=cur_stat) & (rt_composite'= rt_delay); //if fails
+	[refreshServiceType] (act1=false) -> 0.5:(act1'=true) & (goal'=sat) & (rt_composite'= rt_ss + rt_delay) + //if success
+					     0.5:(act1'=false) & (goal'=sat) & (rt_composite'= rt_delay); //if fails
 	
 	// REFRESH ALL SERVICE
-	[refreshAllService] (act2=false) -> (act2'=true) & (goal'=cur_stat) & (rt_composite'= rt_sall + rt_delay);
+	[refreshAllService] (act2=false) -> 0.5:(act2'=true) & (goal'=sat) & (rt_composite'= rt_sall + rt_delay) + //if success
+					    0.5:(act2'=false) & (goal'=sat) & (rt_composite'= rt_delay); //if fails
 
 	// UPDATE SERVICE DESCRIPTION
-	[updateDescription] (act3=false) -> (act3'=true) & (goal'=cur_stat) & (rt_composite'= rt_sall + rt_delay);
+	[updateDescription] (act3=false) -> 0.5:(act3'=true) & (goal'=sat) & (rt_composite'= rt_ss + rt_delay) + //if success
+					    0.5:(act3'=false) & (goal'=sat) & (rt_composite'= rt_delay); //if fails
 endmodule
 
 //====================================================
@@ -108,8 +97,16 @@ module environment
 endmodule
 
 //=============================================
-//defining the utility functions
+//defining the formulas
 
+// to compute the satisfaction of adaptation
+formula sat = (rt_composite<MAXRT?true:false);
+
+//to compute the overall service execution time in the case of refresh all services
+formula rt_sall = RT_S1 + RT_S2 + RT_S3;
+
+//to compute a specific service execution time in the case of refresh service type
+formula rt_ss = (SS_CH=1?RT_S1:(SS_CH=2?RT_S2:(SS_CH=3?RT_S3:0)));
 
 //==============================================
 //Computing the utility
