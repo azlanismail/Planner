@@ -37,7 +37,6 @@ import strat.Strategy;
 public class Planner {
 
 	PrismLog mainLog;
-	PrismSettings ps;
 	PrismExplicit prismEx;
 	Prism prism;
 	Values vm, vp;
@@ -60,30 +59,20 @@ public class Planner {
 	String propPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\propTeleAssistance.props";
 	String modelConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\ModelConstants.txt";
 	String propConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\PropConstants.txt";
-	String expStratPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\strategy.adv";
-	String expStratPath2 = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\strategy2.adv";
-	String transPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\transitionbefore";
-	String transPath2 = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\transitionafter";
-
+	String expStratPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\strategy";
+	String transPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\transition";
+	
 		
 	public Planner()
 	{
 		
 		mainLog = new PrismFileLog(logPath);
-        //ps = new PrismSettings();
         prism = new Prism(mainLog , mainLog );
         prismEx = new PrismExplicit(prism.getMainLog(), prism.getSettings());
         
-    	//for parsing model file
+    	//for parsing model and property file
     	try {
 			modulesFile = prism.parseModelFile(new File(modelPath));
-		} catch (FileNotFoundException | PrismLangException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	
-    	//for parsing property model
-    	try {
 			propertiesFile = prism.parsePropertiesFile(modulesFile, new File(propPath));
 		} catch (FileNotFoundException | PrismLangException e) {
 			// TODO Auto-generated catch block
@@ -99,7 +88,6 @@ public class Planner {
     	
     	//I need to access SMGModelChecker directly to manipulate the strategy
     	smc = new SMGModelChecker();
-   	  
 	}
 	
 	public void initialisePrism() throws PrismException
@@ -197,36 +185,7 @@ public class Planner {
     	System.out.println("The reward at initial state is :"+smgr.getStateReward(0));
     }
     
-    /**
-     * Objective: It is used to build strategy based on Memoryless Deterministic Strategy
-     * @throws PrismException
-     * @throws InvalidStrategyStateException 
-     */
-    public void buildStrategy() throws PrismException, InvalidStrategyStateException
-    {  
-    	    	
-    	//create the strategy
-    	//stra = new MemorylessDeterministicStrategy(ch);
-    	//stra.init(0);
-    	
-    	
-		//System.out.println("The memory size is :"+stra.getMemorySize());
-		//System.out.println("The type of the model is :"+model.getClass());
-		//stra.init(0);
-    	//	
-    		//stra.updateMemory(model.getNumChoices(2), 2);
-    		//System.out.println("state 2 = " + 3 + " strategy :"+stra.getNextMove(2));
-    		//stra.updateMemory(0, 0);
-    		//
-        	//builtStra = stra.buildProduct(model);
-        //	System.out.println("Get the initial state :"+builtStra.getFirstInitialState());
-        	//System.out.println("The outcome :"+builtStra);
-        //	System.out.println("State list : "+builtStra.getStatesList());
-        
-        	
-       // }            	
-    }
-    
+     
     /**
      * Objective: It extracts the transitions which have been synthesized
      * @throws PrismException
@@ -235,24 +194,19 @@ public class Planner {
     {
     	File transFile = new File(transPath);
     	model.exportToPrismExplicitTra(transFile);
-   
-    	File transFile2 = new File(transPath2);
-    //	builtStra.exportToPrismExplicitTra(transFile2);
     }
     
     
-    /**
-     * Objective: to export the synthesize strategy into an external file
-     * @param straFile1
-     * @param straFile2
-     * @throws  
-     */
+   /**
+    * Objective: to export the synthesize strategy into an external file
+    * @param straFile
+    */
     public void exportStrategy(String straFile)
     {
-    	//assign the pointer to strategy
+    	//assign the pointer from SMGModelChecker to strategy
     	strategy = smc.getStrategy();
     	
-    	//export .adv file
+    	//export to .adv file
     	strategy.exportToFile(straFile);
     }
     
@@ -347,16 +301,11 @@ public class Planner {
                           
         //strategy related process
          try {
-        	 
-			buildStrategy();
 			exportTrans();
 			exportStrategy(expStratPath);
 			getAdaptStrategyfromFile();
 			
 		} catch (PrismException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvalidStrategyStateException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (FileNotFoundException e) {
