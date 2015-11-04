@@ -50,18 +50,20 @@ public class Planner {
 	RewardStruct rw;
 	SMGRewards smgr;
 	Strategy strategy, stra, stra2;
-	STPGModelChecker mc; 
 	SMGModelChecker smc;
 	
 	String logPath = "./myLog.txt";
-	String modelPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\Prismfiles\\teleAssistance.smg";
-	String propPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\Prismfiles\\propTeleAssistance.props";
-	String modelConstPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\ModelConstants.txt";
-	String propConstPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\PropConstants.txt";
-	String expStratPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\strategy.adv";
-	String expStratPath2 = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\strategy2.adv";
-	String transPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\transitionbefore";
-	String transPath2 = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\IOFiles\\transitionafter";
+	String laptopPath = "C:\\Users\\USER\\";
+	String desktopPath = "H:\\";
+	String mainPath = laptopPath;
+	String modelPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\teleAssistance.smg";
+	String propPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\propTeleAssistance.props";
+	String modelConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\ModelConstants.txt";
+	String propConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\PropConstants.txt";
+	String expStratPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\strategy.adv";
+	String expStratPath2 = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\strategy2.adv";
+	String transPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\transitionbefore";
+	String transPath2 = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\transitionafter";
 
 		
 	public Planner()
@@ -72,10 +74,6 @@ public class Planner {
         prism = new Prism(mainLog , mainLog );
         prismEx = new PrismExplicit(prism.getMainLog(), prism.getSettings());
         
-        //for assigning values of constants
-    	vm = new Values();
-    	vp = new Values();
-        			
     	//for parsing model file
     	try {
 			modulesFile = prism.parseModelFile(new File(modelPath));
@@ -92,11 +90,14 @@ public class Planner {
 			e.printStackTrace();
 		}
     	
+    	//for assigning values of constants
+    	vm = new Values();
+    	vp = new Values();			
+    	
     	//for building and checking the model
     	simEngine = new SimulatorEngine(prism);
     	
-    	//I need to use STPG to extract the strategy
-    	mc = new STPGModelChecker();
+    	//I need to access SMGModelChecker directly to manipulate the strategy
     	smc = new SMGModelChecker();
    	  
 	}
@@ -161,16 +162,10 @@ public class Planner {
 	
 	public void checkModelbyPrismEx() throws PrismLangException, PrismException
 	{
-		 result = prismEx.modelCheck(model, modulesFile, propertiesFile , propertiesFile.getProperty(0));
-		
-		 //resultSTPG = mc.check(model, propertiesFile.getProperty(0));
-		 smc.setModulesFileAndPropertiesFile(modulesFile, propertiesFile);
-			//result = mc.check(model, expr);
-		// smc.setStrategy(strategy);
-		 smc.setGenerateStrategy(true);
-		 resultSMG = smc.check(model, propertiesFile.getProperty(0));
-		
-		 
+		// result = prismEx.modelCheck(model, modulesFile, propertiesFile , propertiesFile.getProperty(0));
+		smc.setModulesFileAndPropertiesFile(modulesFile, propertiesFile);
+		smc.setGenerateStrategy(true);
+		resultSMG = smc.check(model, propertiesFile.getProperty(0)); 
 	}
     
     public void outcomefromSimEngine() throws PrismException
@@ -184,10 +179,8 @@ public class Planner {
     
     public void outcomefromModelChecking()
     {
-    	 System.out.println("The result from model checking is :"+result.getResult());
-    	 System.out.println("The result from model checking (STPG) is :"+ resultSMG.getResultString());
+    	 System.out.println("The result from model checking (SMG) is :"+ resultSMG.getResultString());
     	 System.out.println("The outcome of the strategy is :"+smc.getStrategy());
-    	 
     }
     
     public void outcomefromModelBuilding()
@@ -196,8 +189,7 @@ public class Planner {
     	System.out.println("Number of transitions (Model Building) :"+model.getNumTransitions());
     	for(int i=0; i < model.getNumStates(); i++){
     		System.out.println("Number of choice (Model Building) for state :"+i+ " is :"+model.getNumChoices(i));
-    	}
-    	
+    	}	
     }
     
     public void outcomefromRewards()
@@ -212,15 +204,11 @@ public class Planner {
      */
     public void buildStrategy() throws PrismException, InvalidStrategyStateException
     {  
-    	//get all choices for each state
-		int[] ch = new int[model.getNumStates()];
-    	for (int i=0; i < model.getNumStates(); i++)
-        	ch[i] = model.getNumChoices(i)-1;
-    	
+    	    	
     	//create the strategy
     	//stra = new MemorylessDeterministicStrategy(ch);
     	//stra.init(0);
-    	strategy = smc.getStrategy();
+    	
     	
 		//System.out.println("The memory size is :"+stra.getMemorySize());
 		//System.out.println("The type of the model is :"+model.getClass());
@@ -259,38 +247,28 @@ public class Planner {
      * @param straFile2
      * @throws  
      */
-    public void exportStrategy(String straFile1, String straFile2)
+    public void exportStrategy(String straFile)
     {
-    	//stra.exportToFile(straFile1);
-    	//stra2 = Strategies.loadStrategyFromFile(straFile1);
-    	//stra2.exportToFile(straFile2);
-    	strategy.exportToFile(straFile1);
-    	    	
-    	//mdstrat = mdstrat2 = null;
+    	//assign the pointer to strategy
+    	strategy = smc.getStrategy();
+    	
+    	//export .adv file
+    	strategy.exportToFile(straFile);
     }
     
-   
-    public void outcomefromStrategyGeneration() throws InvalidStrategyStateException
-    {
-   // 	  System.out.println("current memory element : "+stra.getCurrentMemoryElement());
-    //      System.out.println("Strategy description : "+stra.getStateDescription());
-    }
-
+     
     
     /**
      * Objective: It is used to provide the required strategy to the adaptation engine
      * @return
      * @throws FileNotFoundException
      */
-    public int getAdaptStrategy() throws FileNotFoundException
-    {
-    	//this function needs to be tested....
-    	//so far, its reasonably ok.
-    	
+    public int getAdaptStrategyfromFile() throws FileNotFoundException
+    {    	
     	int choice = 0;
-    	int decState = 5;
+    	int decState = 4;
     	
-    	//Should be reading from the transition file which has been synthesized
+    	//Read from the exported strategy
     	Scanner read = new Scanner(new BufferedReader(new FileReader(expStratPath)));
 		//read.useDelimiter(",");
 		int inData = -1;
@@ -363,34 +341,18 @@ public class Planner {
 			e.printStackTrace();
 		}
          
-      //   try {
-		//	buildRewards();
-	//	} catch (PrismException e) {
-			// TODO Auto-generated catch block
-	//		e.printStackTrace();
-	//	}
-         
-       //  outcomefromRewards();
-         
+                      
          outcomefromModelBuilding();
          outcomefromModelChecking();
-         
-         //get the outcomes
-       //  try {
-		//	outcomefromSimEngine();
-		//} catch (PrismException e) {
-			// TODO Auto-generated catch block
-		//	e.printStackTrace();
-		//}
-                 
+                          
         //strategy related process
          try {
         	 
 			buildStrategy();
 			exportTrans();
-			exportStrategy(expStratPath, expStratPath2);
-			outcomefromStrategyGeneration();
-			getAdaptStrategy();
+			exportStrategy(expStratPath);
+			getAdaptStrategyfromFile();
+			
 		} catch (PrismException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -412,12 +374,6 @@ public class Planner {
      
      public static void main(String[] args) {
  		// TODO Auto-generated method stub
- 		
- 		//receive data from the analyzer
- 		//a) cost/benefits data - to support reward calculation in the prism model
- 		//b) latency data - to support the environment player
- 		//c) adaptation goals - to support the am player
- 		//d) configuration data - to support the am player
 
  		Planner plan = new Planner();
 	    plan.synthesis();
