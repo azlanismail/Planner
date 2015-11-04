@@ -49,9 +49,9 @@ module adaptPlanner
 	probe:[0..1] init CUR_PROBE;
 	
 	//make selection
-	[updateDescription] (t=TP) & (goal=false) & (probe>0) -> (t'=TE);
 	[refreshAllService] (t=TP) & (goal=false) & (probe>=0) -> (t'=TE);	
 	[refreshServiceType] (t=TP) & (goal=false) & (probe>=0) -> (t'=TE);
+	[updateDescription] (t=TP) & (goal=false) & (probe>0) -> (t'=TE);
        
 	
 
@@ -66,16 +66,16 @@ module target_system
 	act3 : bool init false;  // for updating service description
 	
 	// REFRESH SPECIFIC TYPE OF SERVICE
-	[refreshServiceType] (act1=false) -> 0.5:(act1'=true) & (goal'=sat) & (rt_composite'= rt_ss + rt_delay) + //if success
-					     0.5:(act1'=false) & (goal'=sat) & (rt_composite'= rt_delay); //if fails
+	[refreshServiceType] (act1=false) -> (act1'=true) & (goal'=sat) & (rt_composite'= rt_ss + rt_delay); //+ //if success
+					     //0.5:(act1'=false) & (goal'=false) & (rt_composite'= rt_delay); //if fails
 	
 	// REFRESH ALL SERVICE
-	[refreshAllService] (act2=false) -> 0.5:(act2'=true) & (goal'=sat) & (rt_composite'= rt_sall + rt_delay) + //if success
-					    0.5:(act2'=false) & (goal'=sat) & (rt_composite'= rt_delay); //if fails
+	[refreshAllService] (act2=false) -> (act2'=true) & (goal'=sat) & (rt_composite'= rt_sall + rt_delay); //+ //if success
+					    //0.5:(act2'=false) & (goal'=false) & (rt_composite'= rt_delay); //if fails
 
 	// UPDATE SERVICE DESCRIPTION
-	[updateDescription] (act3=false) -> 0.5:(act3'=true) & (goal'=sat) & (rt_composite'= rt_ss + rt_delay) + //if success
-					    0.5:(act3'=false) & (goal'=sat) & (rt_composite'= rt_delay); //if fails
+	[updateDescription] (act3=false) -> (act3'=true) & (goal'=sat) & (rt_composite'= rt_ss + rt_delay); // + //if success
+					    //0.5:(act3'=false) & (goal'=false) & (rt_composite'= rt_delay); //if fails
 endmodule
 
 //====================================================
