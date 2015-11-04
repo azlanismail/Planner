@@ -10,7 +10,9 @@ import explicit.Distribution;
 import explicit.Model;
 import explicit.PrismExplicit;
 import explicit.SMG;
+import explicit.SMGModelChecker;
 import explicit.STPG;
+import explicit.STPGModelChecker;
 import explicit.rewards.ConstructRewards;
 import explicit.rewards.SMGRewards;
 import parser.Values;
@@ -43,11 +45,13 @@ public class Planner {
 	PropertiesFile propertiesFile;
 	SimulatorEngine simEngine;
 	Model model, builtStra;
-	Result result;
+	Result result, resultSTPG, resultSMG;
 	ConstructRewards csr;
 	RewardStruct rw;
 	SMGRewards smgr;
-	Strategy stra, stra2;
+	Strategy strategy, stra, stra2;
+	STPGModelChecker mc; 
+	SMGModelChecker smc;
 	
 	String logPath = "./myLog.txt";
 	String modelPath = "C:\\Users\\USER\\git\\Planner\\PlanningComp\\Prismfiles\\teleAssistance.smg";
@@ -90,6 +94,10 @@ public class Planner {
     	
     	//for building and checking the model
     	simEngine = new SimulatorEngine(prism);
+    	
+    	//I need to use STPG to extract the strategy
+    	mc = new STPGModelChecker();
+    	smc = new SMGModelChecker();
    	  
 	}
 	
@@ -142,6 +150,7 @@ public class Planner {
 		 model = prismEx.buildModel(modulesFile, simEngine);
 	}
 	
+	
 	public void buildRewards() throws PrismException
 	{
 		//construct the rewards
@@ -154,10 +163,14 @@ public class Planner {
 	{
 		 result = prismEx.modelCheck(model, modulesFile, propertiesFile , propertiesFile.getProperty(0));
 		
-		// prismEx.exportTransToFile(arg0, arg1, arg2, arg3);
-		 //only for DTMCs/CTMCs
-		 //prismEx.doSteadyState(model);
+		 //resultSTPG = mc.check(model, propertiesFile.getProperty(0));
+		 smc.setModulesFileAndPropertiesFile(modulesFile, propertiesFile);
+			//result = mc.check(model, expr);
+		// smc.setStrategy(strategy);
+		 smc.setGenerateStrategy(true);
+		 resultSMG = smc.check(model, propertiesFile.getProperty(0));
 		
+		 
 	}
     
     public void outcomefromSimEngine() throws PrismException
@@ -172,6 +185,9 @@ public class Planner {
     public void outcomefromModelChecking()
     {
     	 System.out.println("The result from model checking is :"+result.getResult());
+    	 System.out.println("The result from model checking (STPG) is :"+ resultSMG.getResultString());
+    	 System.out.println("The outcome of the strategy is :"+smc.getStrategy());
+    	 
     }
     
     public void outcomefromModelBuilding()
@@ -202,22 +218,22 @@ public class Planner {
         	ch[i] = model.getNumChoices(i)-1;
     	
     	//create the strategy
-    	stra = new MemorylessDeterministicStrategy(ch);
+    	//stra = new MemorylessDeterministicStrategy(ch);
     	//stra.init(0);
-    
+    	strategy = smc.getStrategy();
     	
-		System.out.println("The memory size is :"+stra.getMemorySize());
-		System.out.println("The type of the model is :"+model.getClass());
+		//System.out.println("The memory size is :"+stra.getMemorySize());
+		//System.out.println("The type of the model is :"+model.getClass());
 		//stra.init(0);
     	//	
     		//stra.updateMemory(model.getNumChoices(2), 2);
     		//System.out.println("state 2 = " + 3 + " strategy :"+stra.getNextMove(2));
     		//stra.updateMemory(0, 0);
     		//
-        	builtStra = stra.buildProduct(model);
-        	System.out.println("Get the initial state :"+builtStra.getFirstInitialState());
+        	//builtStra = stra.buildProduct(model);
+        //	System.out.println("Get the initial state :"+builtStra.getFirstInitialState());
         	//System.out.println("The outcome :"+builtStra);
-        	System.out.println("State list : "+builtStra.getStatesList());
+        //	System.out.println("State list : "+builtStra.getStatesList());
         
         	
        // }            	
@@ -233,7 +249,7 @@ public class Planner {
     	model.exportToPrismExplicitTra(transFile);
    
     	File transFile2 = new File(transPath2);
-    	builtStra.exportToPrismExplicitTra(transFile2);
+    //	builtStra.exportToPrismExplicitTra(transFile2);
     }
     
     
@@ -245,17 +261,19 @@ public class Planner {
      */
     public void exportStrategy(String straFile1, String straFile2)
     {
-    	stra.exportToFile(straFile1);
-    	stra2 = Strategies.loadStrategyFromFile(straFile1);
-    	stra2.exportToFile(straFile2);
+    	//stra.exportToFile(straFile1);
+    	//stra2 = Strategies.loadStrategyFromFile(straFile1);
+    	//stra2.exportToFile(straFile2);
+    	strategy.exportToFile(straFile1);
+    	    	
     	//mdstrat = mdstrat2 = null;
     }
     
    
     public void outcomefromStrategyGeneration() throws InvalidStrategyStateException
     {
-    	  System.out.println("current memory element : "+stra.getCurrentMemoryElement());
-          System.out.println("Strategy description : "+stra.getStateDescription());
+   // 	  System.out.println("current memory element : "+stra.getCurrentMemoryElement());
+    //      System.out.println("Strategy description : "+stra.getStateDescription());
     }
 
     
