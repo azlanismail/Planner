@@ -54,7 +54,7 @@ public class Planner {
 	String logPath = "./myLog.txt";
 	String laptopPath = "C:\\Users\\USER\\";
 	String desktopPath = "H:\\";
-	String mainPath = laptopPath;
+	String mainPath = desktopPath;
 	String modelPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\teleAssistance.smg";
 	String propPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\propTeleAssistance.props";
 	String modelConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\ModelConstants.txt";
@@ -90,24 +90,24 @@ public class Planner {
     	smc = new SMGModelChecker();
 	}
 	
-	public void initialisePrism() throws PrismException
-	{
+	public void initialisePrism() throws PrismException {
 		prism.initialise();
 	}
 	
-	public void setConstantsforProbe(int probeId) {
+	public void setConstantsProbe(int probeId) {
 		vm.addValue("CUR_PROBE", probeId);
-		try {
-			modulesFile.setUndefinedConstants(vm);
-		} catch (PrismLangException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 	
+	public void setConstantsServiceType(int serviceId) {
+		vm.addValue("SS_TY", serviceId);
+	}
 	
-	public void setConstantsforModel(String inFile) throws PrismLangException, FileNotFoundException
-	{
+	public void setConstantsforTesting() {
+		setConstantsProbe(1);
+		setConstantsServiceType(1);
+	}
+	
+	public void setConstantsforModel(String inFile) throws PrismLangException, FileNotFoundException {
 		Scanner readMod = new Scanner(new BufferedReader(new FileReader(inFile)));
 		//read.useDelimiter(",");
 		String param = null;
@@ -205,11 +205,12 @@ public class Planner {
     {
     	File transFile = new File(transPath);
     	model.exportToPrismExplicitTra(transFile);
+    	
     }
     
     
    /**
-    * Objective: to export the synthesize strategy into an external file
+    * Objective: To export the synthesize strategy into an external file
     * @param straFile
     */
     public void exportStrategy(String straFile)
@@ -221,17 +222,49 @@ public class Planner {
     	strategy.exportToFile(straFile);
     }
     
-     
-    
     /**
-     * Objective: It is used to provide the required strategy to the adaptation engine
+     * Objective: To get the decision state by referring to the transition data 
+     * @return
+     * @throws FileNotFoundException
+     */
+    public int getDecisionState() throws FileNotFoundException{
+    	
+    	//read from transition file
+    	Scanner read = new Scanner(new BufferedReader(new FileReader(transPath)));
+		//read.useDelimiter(",");
+		int inData = -1;
+		int decState = -1;
+		
+		//skip the first line
+		read.nextLine();
+		
+		while (read.hasNextLine()) {
+		   	//read the first four numbers
+			//keep the first number as the potential decision state
+			inData = read.nextInt(); read.nextInt(); read.nextInt(); read.nextInt();
+			
+			//check if the fifth element has a label as follow:
+			if (read.hasNext("refreshAllService") || read.hasNext("refreshServiceType") || read.hasNext("refreshServiceType"))
+			{
+				//take the potential decision state as the right one
+				decState = inData;
+				break;
+			}
+        }
+		read.close();
+		if (decState == -1) throw new IllegalArgumentException("Invalid decision state");
+		System.out.println("Decision state is:"+decState);
+    	return decState;
+    }
+    /**
+     * Objective: To get the best action from .adv file
      * @return
      * @throws FileNotFoundException
      */
     public int getAdaptStrategyfromFile() throws FileNotFoundException
     {    	
     	int choice = 0;
-    	int decState = 4;
+    	int decState = getDecisionState();
     	
     	//Read from the exported strategy
     	Scanner read = new Scanner(new BufferedReader(new FileReader(expStratPath)));
@@ -276,8 +309,47 @@ public class Planner {
 		readMod.close();
     }
     
+    public void synthesis() 
+    {
+    	 //initialise the prism
+    	 try {
+			initialisePrism();
+		} catch (PrismException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+    	//assign constants values to the model 
+    	try {
+ 			modulesFile.setUndefinedConstants(vm);
+ 		} catch (PrismLangException e) {
+ 			// TODO Auto-generated catch block
+ 			e.printStackTrace();
+ 		}
+    	 
+         //build and check the model
+         try {
+			buildModelbyPrismEx();
+			checkModelbyPrismEx();
+		} catch (PrismException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+              
+         outcomefromModelBuilding();
+         outcomefromModelChecking();
+        
+        try {
+			exportTrans();
+		} catch (PrismException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        //strategy related process
+       	exportStrategy(expStratPath);
+    }//end of synthesis
     
-	public void synthesis() 
+	public void synthesisforTesting() 
     {
           
     	 //initialise the prism
@@ -288,15 +360,23 @@ public class Planner {
 			e.printStackTrace();
 		}
 
-    	 //read constants 
-    	 try {
-			setConstantsforModel(modelConstPath);
-			setConstantsforProperty(propConstPath);
-		} catch (PrismLangException | FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-         
+    	 //read constants from file
+    	// try {
+		//	setConstantsforModel(modelConstPath);
+		//	setConstantsforProperty(propConstPath);
+		//} catch (PrismLangException | FileNotFoundException e) {
+		//	// TODO Auto-generated catch block
+		//	e.printStackTrace();
+		//}
+        
+    	//assign constants values to the model 
+    	try {
+ 			modulesFile.setUndefinedConstants(vm);
+ 		} catch (PrismLangException e) {
+ 			// TODO Auto-generated catch block
+ 			e.printStackTrace();
+ 		}
+    	 
          //build and check the model
          try {
 			buildModelbyPrismEx();
@@ -325,7 +405,8 @@ public class Planner {
 		}
          
     }//end of synthesis
-     
+    
+	
 	
      public void display(){
    	  System.out.println("Calling from prism");
@@ -336,7 +417,13 @@ public class Planner {
  		// TODO Auto-generated method stub
 
  		Planner plan = new Planner();
-	    plan.synthesis();
+	    //plan.synthesisforTesting();
+ 		try {
+			System.out.println("Decision state is "+plan.getDecisionState());
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
  	}
      
 }

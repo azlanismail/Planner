@@ -28,7 +28,8 @@ global goal : bool init false;	//adaptation goal
 global rt_composite:[0..MAXRT] init INITRT;
 
 //inputs from the adaptation engine:
-const CUR_PROBE;	//identified probe - is used to decide for the appropriate action
+//const CUR_PROBE = 1;	//identified probe - is used to decide for the appropriate action
+const CUR_PROBE;
 const MAXRT = 20;	//maximum response time - to limit the goal
 const INITRT= 0; 	//initial response time
 
@@ -38,8 +39,8 @@ const RT_S2 = 2; //estimated response time for drug service
 const RT_S3 = 3; //estimated response time alarm service
 
 //input from the adaptation engine: (in the case of refresh only a service type)
-const SS_CH = 1; //service that needs to be refreshed
-
+//const SS_TY = 1; //service that needs to be refreshed
+const SS_TY;
 //======================================================
 // player controller
 
@@ -107,7 +108,7 @@ formula sat = (rt_composite<MAXRT?true:false);
 formula rt_sall = RT_S1 + RT_S2 + RT_S3;
 
 //to compute a specific service execution time in the case of refresh service type
-formula rt_ss = (SS_CH=1?RT_S1:(SS_CH=2?RT_S2:(SS_CH=3?RT_S3:0)));
+formula rt_ss = (SS_TY=1?RT_S1:(SS_TY=2?RT_S2:(SS_TY=3?RT_S3:0)));
 
 //==============================================
 //Computing the utility
