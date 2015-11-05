@@ -95,6 +95,17 @@ public class Planner {
 		prism.initialise();
 	}
 	
+	public void setConstantsforProbe(int probeId) {
+		vm.addValue("CUR_PROBE", probeId);
+		try {
+			modulesFile.setUndefinedConstants(vm);
+		} catch (PrismLangException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	
 	public void setConstantsforModel(String inFile) throws PrismLangException, FileNotFoundException
 	{
 		Scanner readMod = new Scanner(new BufferedReader(new FileReader(inFile)));
@@ -326,8 +337,6 @@ public class Planner {
 
  		Planner plan = new Planner();
 	    plan.synthesis();
-			
-
-         
  	}
+     
 }

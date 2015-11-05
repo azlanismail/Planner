@@ -28,7 +28,7 @@ global goal : bool init false;	//adaptation goal
 global rt_composite:[0..MAXRT] init INITRT;
 
 //inputs from the adaptation engine:
-const CUR_PROBE = 1;	//identified probe - is used to decide for the appropriate action
+const CUR_PROBE;	//identified probe - is used to decide for the appropriate action
 const MAXRT = 20;	//maximum response time - to limit the goal
 const INITRT= 0; 	//initial response time
 
