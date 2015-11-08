@@ -43,18 +43,15 @@ public class Planner {
 	ModulesFile modulesFile;
 	PropertiesFile propertiesFile;
 	SimulatorEngine simEngine;
-	Model model, builtStra;
-	Result result, resultSTPG, resultSMG;
-	ConstructRewards csr;
-	RewardStruct rw;
-	SMGRewards smgr;
-	Strategy strategy, stra, stra2;
+	Model model;
+	Result result, resultSMG;
+	Strategy strategy;
 	SMGModelChecker smc;
 	
 	String logPath = "./myLog.txt";
 	String laptopPath = "C:\\Users\\USER\\";
 	String desktopPath = "H:\\";
-	String mainPath = desktopPath;
+	String mainPath = laptopPath;
 	String modelPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\teleAssistance.smg";
 	String propPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\propTeleAssistance.props";
 	String modelConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\ModelConstants.txt";
@@ -150,15 +147,6 @@ public class Planner {
 		 model = prismEx.buildModel(modulesFile, simEngine);
 	}
 	
-	
-	public void buildRewards() throws PrismException
-	{
-		//construct the rewards
-	    csr = new ConstructRewards(mainLog);
-	    rw = new RewardStruct();
-	    smgr = csr.buildSMGRewardStructure((SMG)model, rw, vp);
-	}
-	
 	public void checkModelbyPrismEx() throws PrismLangException, PrismException
 	{
 		// result = prismEx.modelCheck(model, modulesFile, propertiesFile , propertiesFile.getProperty(0));
@@ -190,12 +178,7 @@ public class Planner {
     		System.out.println("Number of choice (Model Building) for state :"+i+ " is :"+model.getNumChoices(i));
     	}	
     }
-    
-    public void outcomefromRewards()
-    {
-    	System.out.println("The reward at initial state is :"+smgr.getStateReward(0));
-    }
-    
+       
      
     /**
      * Objective: It extracts the transitions which have been synthesized
@@ -287,29 +270,11 @@ public class Planner {
     	return choice;
     }
     
+   
     /**
-     * Objective: Read data from the transition file which is useful to map with the strategy file.
-     * @param transPath
-     * @throws FileNotFoundException
+     * Objective: To generate the adaptation plan
      */
-    private void readTransition(String transPath) throws FileNotFoundException
-    {
-    	Scanner readMod = new Scanner(new BufferedReader(new FileReader(transPath)));
-		//read.useDelimiter(",");
-		String param = null;
-		int val = -1;
-		int count = 0;
-		while (readMod.hasNext()) {
-			 param = readMod.next();
-			 val = readMod.nextInt();
-			 vm.addValue(param, val);
-			 count++;
-        }
-		
-		readMod.close();
-    }
-    
-    public void synthesis() 
+    public void generatePlan() 
     {
     	 //initialise the prism
     	 try {
