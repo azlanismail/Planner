@@ -52,11 +52,11 @@ public class Planner {
 	String laptopPath = "C:\\Users\\USER\\";
 	String desktopPath = "H:\\";
 	String mainPath = laptopPath;
-	String modelPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\teleAssistance.smg";
+	String modelPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\teleAssistance_v2.smg";
 	String propPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\propTeleAssistance.props";
 	String modelConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\ModelConstants.txt";
 	String propConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\PropConstants.txt";
-	String expStratPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\strategy";
+	String stratPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\strategy";
 	String transPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\transition";
 	
 		
@@ -95,15 +95,20 @@ public class Planner {
 		vm.addValue("CUR_PROBE", probeId);
 	}
 	
-	public void setConstantsServiceType(int serviceId) {
-		vm.addValue("SS_TY", serviceId);
+	public void setConstantsServiceType(int typeId) {
+		vm.addValue("SV_FAIL_TY", typeId);
 	}
 	
-	public void setConstantsforTesting() {
-		setConstantsProbe(1);
-		setConstantsServiceType(1);
+	public void setConstantsServiceId(int serviceId) {
+		vm.addValue("SV_FAIL_ID", serviceId);
 	}
 	
+	public void setConstantsTesting() {
+		setConstantsProbe(0);
+		setConstantsServiceType(0);
+		setConstantsServiceId(5);
+	}
+		
 	public void setConstantsforModel(String inFile) throws PrismLangException, FileNotFoundException {
 		Scanner readMod = new Scanner(new BufferedReader(new FileReader(inFile)));
 		//read.useDelimiter(",");
@@ -196,13 +201,13 @@ public class Planner {
     * Objective: To export the synthesize strategy into an external file
     * @param straFile
     */
-    public void exportStrategy(String straFile)
+    public void exportStrategy()
     {
     	//assign the pointer from SMGModelChecker to strategy
     	strategy = smc.getStrategy();
     	
     	//export to .adv file
-    	strategy.exportToFile(straFile);
+    	strategy.exportToFile(stratPath);
     }
     
     /**
@@ -210,7 +215,45 @@ public class Planner {
      * @return
      * @throws FileNotFoundException
      */
-    public int getDecisionState() throws FileNotFoundException{
+    public int getDecisionState() throws IllegalArgumentException, FileNotFoundException{
+    	
+    	//read from transition file
+    	Scanner read = new Scanner(new BufferedReader(new FileReader(transPath)));
+		//read.useDelimiter(",");
+		int prevState = -1;
+		int curState = -1;
+		int decState = -1;
+		int count = 0;
+		//skip the first line
+		read.nextLine();
+		prevState = read.nextInt();
+		read.nextLine();
+		//System.out.println("prev state is "+prevState);
+		while (read.hasNextLine()) {
+		   	curState = read.nextInt();
+		   //	System.out.println("current state is "+curState);
+			if (prevState == curState) {
+				decState = curState;
+				break;
+			}
+			else {
+				prevState = curState;
+			}
+			read.nextLine();
+			
+        }
+		read.close();
+		if (decState == -1) throw new IllegalArgumentException("Invalid decision state");
+		System.out.println("Decision state is :"+decState);
+    	return decState;
+    }
+    
+    /**
+     * Objective: To get the decision state by referring to the transition data 
+     * @return
+     * @throws FileNotFoundException
+     */
+    public int getDecisionState_old() throws FileNotFoundException{
     	
     	//read from transition file
     	Scanner read = new Scanner(new BufferedReader(new FileReader(transPath)));
@@ -239,6 +282,7 @@ public class Planner {
 		System.out.println("Decision state is:"+decState);
     	return decState;
     }
+    
     /**
      * Objective: To get the best action from .adv file
      * @return
@@ -250,7 +294,7 @@ public class Planner {
     	int decState = getDecisionState();
     	
     	//Read from the exported strategy
-    	Scanner read = new Scanner(new BufferedReader(new FileReader(expStratPath)));
+    	Scanner read = new Scanner(new BufferedReader(new FileReader(stratPath)));
 		//read.useDelimiter(",");
 		int inData = -1;
 		
@@ -311,7 +355,8 @@ public class Planner {
 			e.printStackTrace();
 		}
         //strategy related process
-       	exportStrategy(expStratPath);
+       	exportStrategy();
+       	
     }//end of synthesis
     
 	public void synthesisforTesting() 
@@ -358,7 +403,7 @@ public class Planner {
         //strategy related process
          try {
 			exportTrans();
-			exportStrategy(expStratPath);
+			exportStrategy();
 			getAdaptStrategyfromFile();
 			
 		} catch (PrismException e) {
@@ -382,13 +427,22 @@ public class Planner {
  		// TODO Auto-generated method stub
 
  		Planner plan = new Planner();
-	    //plan.synthesisforTesting();
- 		try {
-			System.out.println("Decision state is "+plan.getDecisionState());
-		} catch (FileNotFoundException e) {
+	    plan.setConstantsTesting();
+	    plan.generatePlan();
+	  
+		try {
+			plan.getDecisionState();
+			plan.getAdaptStrategyfromFile();
+		} 
+       	catch (IllegalArgumentException e) {
+       		e.printStackTrace();
+       	}
+       	catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.err.println("something not right");
 		}
+ 		
  	}
      
 }

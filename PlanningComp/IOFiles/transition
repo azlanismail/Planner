@@ -1,10 +1,18 @@
-8 9 9
-0 0 3 1
-1 0 4 1
-2 0 5 1
-3 0 2 1 refreshAllService
-3 1 1 1 refreshServiceType
-4 0 6 1
-5 0 7 1
-6 0 6 1
-7 0 7 1
+14 17 17
+0 0 5 1
+1 0 6 1
+2 0 7 1
+3 0 8 1
+4 0 9 1
+5 0 1 1 selectMedic1
+5 1 2 1 selectMedic2
+5 2 3 1 selectMedic3
+5 3 4 1 selectMedic4
+6 0 10 1
+7 0 11 1
+8 0 12 1
+9 0 13 1
+10 0 10 1
+11 0 11 1
+12 0 12 1
+13 0 13 1
