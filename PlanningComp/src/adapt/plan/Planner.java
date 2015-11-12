@@ -51,7 +51,7 @@ public class Planner {
 	String logPath = "./myLog.txt";
 	String laptopPath = "C:\\Users\\USER\\";
 	String desktopPath = "H:\\";
-	String mainPath = desktopPath;
+	String mainPath = laptopPath;
 	String modelPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\teleAssistance_v2.smg";
 	String propPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\propTeleAssistance.props";
 	String modelConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\ModelConstants.txt";
@@ -74,11 +74,11 @@ public class Planner {
 		} catch (FileNotFoundException | PrismLangException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}		
     	
     	//for assigning values of constants
     	vm = new Values();
-    	vp = new Values();			
+    	vp = new Values();	
     	
     	//for building and checking the model
     	simEngine = new SimulatorEngine(prism);
@@ -92,21 +92,21 @@ public class Planner {
 	}
 	
 	public void setConstantsProbe(int probeId) {
-		vm.addValue("CUR_PROBE", probeId);
+		vm.setValue("CUR_PROBE", probeId);
 	}
 	
 	public void setConstantsServiceType(int typeId) {
-		vm.addValue("SV_FAIL_TY", typeId);
+		vm.setValue("SV_FAIL_TY", typeId);
 	}
 	
 	public void setConstantsServiceId(int serviceId) {
-		vm.addValue("SV_FAIL_ID", serviceId);
+		vm.setValue("SV_FAIL_ID", serviceId);
 	}
 	
-	public void setConstantsTesting() {
-		setConstantsProbe(0);
-		setConstantsServiceType(0);
-		setConstantsServiceId(5);
+	public void setConstantsTesting(int probe, int type, int id) {
+		setConstantsProbe(probe);
+		setConstantsServiceType(type);
+		setConstantsServiceId(id);
 	}
 		
 	public void setConstantsforModel(String inFile) throws PrismLangException, FileNotFoundException {
@@ -284,20 +284,53 @@ public class Planner {
     	return decState;
     }
     
-    public int mapStrategywithServiceId(int action){
+    public String getActionLabel(int decState, int decAction) throws FileNotFoundException {
+    	//read from transition file
+    	Scanner read = new Scanner(new BufferedReader(new FileReader(transPath)));
+		//read.useDelimiter(",");
+    	int curState = -1;
+    	int curAction = -1;
+    	String label = null;
+		//skip the first line
+		read.nextLine();
+		while (read.hasNextLine()) {
+		   	curState = read.nextInt();
+		   //	System.out.println("current state is "+curState);
+			if (curState == decState) {
+				curAction = read.nextInt();
+				if (curAction == decAction) {
+					//skip two columns
+					read.nextInt(); read.nextInt();
+					label = read.next();
+					break;
+				}
+			}
+			read.nextLine();
+        }
+		read.close();
+		System.out.println("Label is :"+label);
+    	return label;
+    }
+    
+    public int getServiceIdfromLabel(String label){
     	int serviceId = -1;
     	
-    	//in the case of medical service
+    	//map the selected action from strategy and transition
+    	
     	try {
-			if ((vm.getIntValueOf("SV_FAIL_TY") == 0) && (action == 0)) serviceId = 4;
-			if ((vm.getIntValueOf("SV_FAIL_TY") == 0) && (action == 1)) serviceId = 5;
-			if ((vm.getIntValueOf("SV_FAIL_TY") == 0) && (action == 2)) serviceId = 6;
-			if ((vm.getIntValueOf("SV_FAIL_TY") == 0) && (action == 3)) serviceId = 7;
-			if ((vm.getIntValueOf("SV_FAIL_TY") == 0) && (action == 4)) serviceId = 8;
+    	//	System.out.println("SV_FAIL_TY is"+ vm.getIntValueOf("SV_FAIL_TY") );
+    		
+    		//in the case of medical service
+			if ((vm.getIntValueOf("SV_FAIL_TY") == 0) && label.equalsIgnoreCase("MedicalService1")) serviceId = 4;
+			if ((vm.getIntValueOf("SV_FAIL_TY") == 0) && label.equalsIgnoreCase("MedicalService2")) serviceId = 5;
+			if ((vm.getIntValueOf("SV_FAIL_TY") == 0) && label.equalsIgnoreCase("MedicalService3")) serviceId = 6;
+			if ((vm.getIntValueOf("SV_FAIL_TY") == 0) && label.equalsIgnoreCase("MedicalService4")) serviceId = 7;
+			if ((vm.getIntValueOf("SV_FAIL_TY") == 0) && label.equalsIgnoreCase("MedicalService5")) serviceId = 8;
 			
-			if ((vm.getIntValueOf("SV_FAIL_TY") == 1) && (action == 0)) serviceId = 1;
-			if ((vm.getIntValueOf("SV_FAIL_TY") == 1) && (action == 1)) serviceId = 2;
-			if ((vm.getIntValueOf("SV_FAIL_TY") == 1) && (action == 2)) serviceId = 3;
+			//in the case of alarm service
+			if ((vm.getIntValueOf("SV_FAIL_TY") == 1) && label.equalsIgnoreCase("AlarmService1")) serviceId = 1;
+			if ((vm.getIntValueOf("SV_FAIL_TY") == 1) && label.equalsIgnoreCase("AlarmService2")) serviceId = 2;
+			if ((vm.getIntValueOf("SV_FAIL_TY") == 1) && label.equalsIgnoreCase("AlarmService3")) serviceId = 3;
 			
 		} catch (PrismLangException e) {
 			// TODO Auto-generated catch block
@@ -336,8 +369,9 @@ public class Planner {
         }
 		read.close();
 		System.out.println("Obtained strategy is "+choice);
-		//System.out.println("Service id is "+mapStrategywithServiceId(choice));
-		return mapStrategywithServiceId(choice);
+		String label = getActionLabel(decState,choice);
+		System.out.println("Service id is "+getServiceIdfromLabel(label));
+		return getServiceIdfromLabel(label);
     }
     
    
@@ -353,6 +387,7 @@ public class Planner {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+    	 
         
     	//assign constants values to the model 
     	try {
@@ -453,7 +488,7 @@ public class Planner {
  		// TODO Auto-generated method stub
 
  		Planner plan = new Planner();
-	    plan.setConstantsTesting();
+ 	    plan.setConstantsTesting(0,0,5);
 	    plan.generatePlan();
 	  
 		try {
@@ -468,6 +503,22 @@ public class Planner {
 			e.printStackTrace();
 			System.err.println("something not right");
 		}
+		
+		 plan.setConstantsTesting(0,1,3);
+		 plan.generatePlan();
+		  
+			try {
+				plan.getDecisionState();
+				plan.getAdaptStrategyfromFile();
+			} 
+	       	catch (IllegalArgumentException e) {
+	       		e.printStackTrace();
+	       	}
+	       	catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				System.err.println("something not right");
+			}
  		
  	}
      
