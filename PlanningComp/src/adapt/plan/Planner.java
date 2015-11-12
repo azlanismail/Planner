@@ -51,7 +51,7 @@ public class Planner {
 	String logPath = "./myLog.txt";
 	String laptopPath = "C:\\Users\\USER\\";
 	String desktopPath = "H:\\";
-	String mainPath = laptopPath;
+	String mainPath = desktopPath;
 	String modelPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\teleAssistance_v2.smg";
 	String propPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\propTeleAssistance.props";
 	String modelConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\ModelConstants.txt";
@@ -193,7 +193,6 @@ public class Planner {
     {
     	File transFile = new File(transPath);
     	model.exportToPrismExplicitTra(transFile);
-    	
     }
     
     
@@ -208,6 +207,8 @@ public class Planner {
     	
     	//export to .adv file
     	strategy.exportToFile(stratPath);
+    	
+    	//System.out.println("State Description ");
     }
     
     /**
@@ -283,6 +284,30 @@ public class Planner {
     	return decState;
     }
     
+    public int mapStrategywithServiceId(int action){
+    	int serviceId = -1;
+    	
+    	//in the case of medical service
+    	try {
+			if ((vm.getIntValueOf("SV_FAIL_TY") == 0) && (action == 0)) serviceId = 4;
+			if ((vm.getIntValueOf("SV_FAIL_TY") == 0) && (action == 1)) serviceId = 5;
+			if ((vm.getIntValueOf("SV_FAIL_TY") == 0) && (action == 2)) serviceId = 6;
+			if ((vm.getIntValueOf("SV_FAIL_TY") == 0) && (action == 3)) serviceId = 7;
+			if ((vm.getIntValueOf("SV_FAIL_TY") == 0) && (action == 4)) serviceId = 8;
+			
+			if ((vm.getIntValueOf("SV_FAIL_TY") == 1) && (action == 0)) serviceId = 1;
+			if ((vm.getIntValueOf("SV_FAIL_TY") == 1) && (action == 1)) serviceId = 2;
+			if ((vm.getIntValueOf("SV_FAIL_TY") == 1) && (action == 2)) serviceId = 3;
+			
+		} catch (PrismLangException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	return serviceId;
+    }
+    
+    
     /**
      * Objective: To get the best action from .adv file
      * @return
@@ -311,7 +336,8 @@ public class Planner {
         }
 		read.close();
 		System.out.println("Obtained strategy is "+choice);
-    	return choice;
+		//System.out.println("Service id is "+mapStrategywithServiceId(choice));
+		return mapStrategywithServiceId(choice);
     }
     
    
