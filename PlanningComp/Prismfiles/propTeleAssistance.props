@@ -1,2 +1,4 @@
 <<con>> R{"time"}min=? [ F "done" ]
 
+<<con>> R{"cost"}min=? [F "done"]
+

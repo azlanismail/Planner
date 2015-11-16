@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.List;
 import java.util.Scanner;
 
 import explicit.Distribution;
@@ -52,7 +53,7 @@ public class Planner {
 	String laptopPath = "C:\\Users\\USER\\";
 	String desktopPath = "H:\\";
 	String mainPath = laptopPath;
-	String modelPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\teleAssistance_v2.smg";
+	String modelPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\teleAssistance_v3.smg";
 	String propPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\propTeleAssistance.props";
 	String modelConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\ModelConstants.txt";
 	String propConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\PropConstants.txt";
@@ -95,19 +96,81 @@ public class Planner {
 		vm.setValue("CUR_PROBE", probeId);
 	}
 	
-	public void setConstantsServiceType(int typeId) {
+	public void setConstantsFailedServiceType(int typeId) {
 		vm.setValue("SV_FAIL_TY", typeId);
 	}
 	
-	public void setConstantsServiceId(int serviceId) {
+	public void setConstantsFailedServiceId(int serviceId) {
 		vm.setValue("SV_FAIL_ID", serviceId);
 	}
 	
-	public void setConstantsTesting(int probe, int type, int id) {
-		setConstantsProbe(probe);
-		setConstantsServiceType(type);
-		setConstantsServiceId(id);
+	public void setConstantsMaxResponseTime(int maxRT) {
+		vm.setValue("MAX_RT", maxRT);
 	}
+	
+	public void setConstantsMaxFailureRate(double maxFR) {
+		vm.setValue("MAX_FR", maxFR);
+	}
+	
+	public void setConstantsServiceProfile(int i, int rt, double cs, double fr) {
+		switch (i) {
+		
+		case 1:
+			vm.setValue("SV_ALARM1_ID", i); vm.setValue("SV_ALARM1_RT", rt);
+			vm.setValue("SV_ALARM1_CS", cs); vm.setValue("SV_ALARM1_FR", fr);
+			break;
+			
+		case 2:
+			vm.setValue("SV_ALARM2_ID", i); vm.setValue("SV_ALARM2_RT", rt);
+			vm.setValue("SV_ALARM2_CS", cs); vm.setValue("SV_ALARM2_FR", fr);
+			break;
+			
+		case 3:
+			vm.setValue("SV_ALARM3_ID", i); vm.setValue("SV_ALARM3_RT", rt);
+			vm.setValue("SV_ALARM3_CS", cs); vm.setValue("SV_ALARM3_FR", fr);
+			break;
+			
+		case 4:
+			vm.setValue("SV_MEDIC1_ID", i); vm.setValue("SV_MEDIC1_RT", rt);
+			vm.setValue("SV_MEDIC1_CS", cs); vm.setValue("SV_MEDIC1_FR", fr);
+			break;
+		
+		case 5:
+			vm.setValue("SV_MEDIC2_ID", i); vm.setValue("SV_MEDIC2_RT", rt);
+			vm.setValue("SV_MEDIC2_CS", cs); vm.setValue("SV_MEDIC2_FR", fr);
+			break;
+			
+		case 6:
+			vm.setValue("SV_MEDIC3_ID", i); vm.setValue("SV_MEDIC3_RT", rt);
+			vm.setValue("SV_MEDIC3_CS", cs); vm.setValue("SV_MEDIC3_FR", fr);
+			break;
+			
+		case 7:
+			vm.setValue("SV_MEDIC4_ID", i); vm.setValue("SV_MEDIC4_RT", rt);
+			vm.setValue("SV_MEDIC4_CS", cs); vm.setValue("SV_MEDIC4_FR", fr);
+			break;
+			
+		case 8:
+			vm.setValue("SV_MEDIC5_ID", i); vm.setValue("SV_MEDIC5_RT", rt);
+			vm.setValue("SV_MEDIC5_CS", cs); vm.setValue("SV_MEDIC5_FR", fr);
+			break;
+			
+		case 9:
+			vm.setValue("SV_DRUG1_ID", i); vm.setValue("SV_DRUG1_RT", rt);
+			vm.setValue("SV_DRUG1_CS", cs); vm.setValue("SV_DRUG1_FR", fr);
+			break;
+		}
+	}
+	
+	public void setConstantsTesting(int probe, int type, int id, int maxRT, double maxFR) {
+		setConstantsProbe(probe);
+		setConstantsFailedServiceType(type);
+		setConstantsFailedServiceId(id);
+		setConstantsMaxResponseTime(maxRT);
+		setConstantsMaxFailureRate(maxFR);
+	}
+	
+	
 		
 	public void setConstantsforModel(String inFile) throws PrismLangException, FileNotFoundException {
 		Scanner readMod = new Scanner(new BufferedReader(new FileReader(inFile)));
@@ -157,7 +220,10 @@ public class Planner {
 		// result = prismEx.modelCheck(model, modulesFile, propertiesFile , propertiesFile.getProperty(0));
 		smc.setModulesFileAndPropertiesFile(modulesFile, propertiesFile);
 		smc.setGenerateStrategy(true);
-		resultSMG = smc.check(model, propertiesFile.getProperty(0)); 
+		
+		//property 0 - find the minimum response time
+		//property 1 - find the minimum cost
+		resultSMG = smc.check(model, propertiesFile.getProperty(1)); 
 	}
     
     public void outcomefromSimEngine() throws PrismException
@@ -171,17 +237,17 @@ public class Planner {
     
     public void outcomefromModelChecking()
     {
-    	 System.out.println("The result from model checking (SMG) is :"+ resultSMG.getResultString());
-    	 System.out.println("The outcome of the strategy is :"+smc.getStrategy());
+    	// System.out.println("The result from model checking (SMG) is :"+ resultSMG.getResultString());
+    	// System.out.println("The outcome of the strategy is :"+smc.getStrategy());
     }
     
     public void outcomefromModelBuilding()
     {
     	System.out.println("Number of states (Model Building) :"+model.getNumStates());
     	System.out.println("Number of transitions (Model Building) :"+model.getNumTransitions());
-    	for(int i=0; i < model.getNumStates(); i++){
-    		System.out.println("Number of choice (Model Building) for state :"+i+ " is :"+model.getNumChoices(i));
-    	}	
+    //	for(int i=0; i < model.getNumStates(); i++){
+    //		System.out.println("Number of choice (Model Building) for state :"+i+ " is :"+model.getNumChoices(i));
+    //	}	
     }
        
      
@@ -488,11 +554,11 @@ public class Planner {
  		// TODO Auto-generated method stub
 
  		Planner plan = new Planner();
- 	    plan.setConstantsTesting(0,0,5);
+ 	    plan.setConstantsTesting(0,0,5,26,0.03);
 	    plan.generatePlan();
 	  
 		try {
-			plan.getDecisionState();
+			//plan.getDecisionState();
 			plan.getAdaptStrategyfromFile();
 		} 
        	catch (IllegalArgumentException e) {
@@ -503,23 +569,6 @@ public class Planner {
 			e.printStackTrace();
 			System.err.println("something not right");
 		}
-		
-		 plan.setConstantsTesting(0,1,3);
-		 plan.generatePlan();
-		  
-			try {
-				plan.getDecisionState();
-				plan.getAdaptStrategyfromFile();
-			} 
-	       	catch (IllegalArgumentException e) {
-	       		e.printStackTrace();
-	       	}
-	       	catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				System.err.println("something not right");
-			}
- 		
  	}
      
 }
