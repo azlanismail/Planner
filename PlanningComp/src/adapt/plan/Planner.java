@@ -52,14 +52,27 @@ public class Planner {
 	String logPath = "./myLog.txt";
 	String laptopPath = "C:\\Users\\USER\\";
 	String desktopPath = "H:\\";
-	String mainPath = desktopPath;
-	String modelPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\teleAssistance_v3.smg";
+	String mainPath = laptopPath;
+	String modelPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\teleAssistance_v4.smg";
 	String propPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\propTeleAssistance.props";
 	String modelConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\ModelConstants.txt";
 	String propConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\PropConstants.txt";
 	String stratPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\strategy";
 	String transPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\transition";
 	
+	//important parameters to the model
+	String md_serviceType = "SV_TY";
+	String md_serviceFailedId = "SV_FAIL_ID";
+	String md_probe = "CUR_PROBE";
+	String md_maxRT = "MAX_RT";
+	String md_maxFR = "MAX_FR";
+	int index = 0;
+	String type = null;
+	String md_sv_id = "SV_"+type+""+index+"_ID";
+	String md_sv_rt = "SV_"+type+""+index+"_RT";
+	String md_sv_cs = "SV_"+type+""+index+"_CS";
+	String md_sv_fr = "SV_"+type+""+index+"_FR";
+
 		
 	public Planner()
 	{
@@ -93,78 +106,54 @@ public class Planner {
 	}
 	
 	public void setConstantsProbe(int probeId) {
-		vm.setValue("CUR_PROBE", probeId);
+		vm.setValue(md_probe, probeId);
 	}
 	
-	public void setConstantsFailedServiceType(int typeId) {
-		vm.setValue("SV_FAIL_TY", typeId);
+	public void setServiceType(String serviceType) {
+		System.out.println("Type detected and sent to the model is :"+serviceType);
+    	if (serviceType.equalsIgnoreCase("MedicalAnalysisService"))
+    		setConstantsServiceType(0);
+    	if (serviceType.equalsIgnoreCase("AlarmService"))
+    		setConstantsServiceType(1);
+    	if (serviceType.equalsIgnoreCase("DrugService"))
+    		setConstantsServiceType(2);
+	}
+	
+	public void setConstantsServiceType(int typeId) {
+		vm.setValue(md_serviceType, typeId);
 	}
 	
 	public void setConstantsFailedServiceId(int serviceId) {
-		vm.setValue("SV_FAIL_ID", serviceId);
+		vm.setValue(md_serviceFailedId, serviceId);
 	}
 	
 	public void setConstantsMaxResponseTime(int maxRT) {
-		vm.setValue("MAX_RT", maxRT);
+		vm.setValue(md_maxRT, maxRT);
 	}
 	
 	public void setConstantsMaxFailureRate(double maxFR) {
-		vm.setValue("MAX_FR", maxFR);
+		vm.setValue(md_maxFR, maxFR);
 	}
 	
 	public void setConstantsServiceProfile(int i, int rt, double cs, double fr) {
-		switch (i) {
 		
-		case 1:
-			vm.setValue("SV_ALARM1_ID", i); vm.setValue("SV_ALARM1_RT", rt);
-			vm.setValue("SV_ALARM1_CS", cs); vm.setValue("SV_ALARM1_FR", fr);
-			break;
-			
-		case 2:
-			vm.setValue("SV_ALARM2_ID", i); vm.setValue("SV_ALARM2_RT", rt);
-			vm.setValue("SV_ALARM2_CS", cs); vm.setValue("SV_ALARM2_FR", fr);
-			break;
-			
-		case 3:
-			vm.setValue("SV_ALARM3_ID", i); vm.setValue("SV_ALARM3_RT", rt);
-			vm.setValue("SV_ALARM3_CS", cs); vm.setValue("SV_ALARM3_FR", fr);
-			break;
-			
-		case 4:
-			vm.setValue("SV_MEDIC1_ID", i); vm.setValue("SV_MEDIC1_RT", rt);
-			vm.setValue("SV_MEDIC1_CS", cs); vm.setValue("SV_MEDIC1_FR", fr);
-			break;
-		
-		case 5:
-			vm.setValue("SV_MEDIC2_ID", i); vm.setValue("SV_MEDIC2_RT", rt);
-			vm.setValue("SV_MEDIC2_CS", cs); vm.setValue("SV_MEDIC2_FR", fr);
-			break;
-			
-		case 6:
-			vm.setValue("SV_MEDIC3_ID", i); vm.setValue("SV_MEDIC3_RT", rt);
-			vm.setValue("SV_MEDIC3_CS", cs); vm.setValue("SV_MEDIC3_FR", fr);
-			break;
-			
-		case 7:
-			vm.setValue("SV_MEDIC4_ID", i); vm.setValue("SV_MEDIC4_RT", rt);
-			vm.setValue("SV_MEDIC4_CS", cs); vm.setValue("SV_MEDIC4_FR", fr);
-			break;
-			
-		case 8:
-			vm.setValue("SV_MEDIC5_ID", i); vm.setValue("SV_MEDIC5_RT", rt);
-			vm.setValue("SV_MEDIC5_CS", cs); vm.setValue("SV_MEDIC5_FR", fr);
-			break;
-			
-		case 9:
-			vm.setValue("SV_DRUG1_ID", i); vm.setValue("SV_DRUG1_RT", rt);
-			vm.setValue("SV_DRUG1_CS", cs); vm.setValue("SV_DRUG1_FR", fr);
-			break;
+		if (i <= 3) {
+			index = i; 
+			type = "ALARM";
 		}
+		else{
+			index = i;
+			type = "MEDIC";
+		}
+	
+		vm.setValue(md_sv_id, i); vm.setValue(md_sv_rt, rt);
+		vm.setValue(md_sv_cs, cs); vm.setValue(md_sv_fr, fr);
 	}
+	
 	
 	public void setConstantsTesting(int probe, int type, int id, int maxRT, double maxFR) {
 		setConstantsProbe(probe);
-		setConstantsFailedServiceType(type);
+		setConstantsServiceType(type);
 		setConstantsFailedServiceId(id);
 		setConstantsMaxResponseTime(maxRT);
 		setConstantsMaxFailureRate(maxFR);
@@ -386,19 +375,24 @@ public class Planner {
     	try {
     		
     		//in the case of retry
-    		if (label.equalsIgnoreCase("Retry")) serviceId = vm.getIntValueOf("SV_FAIL_ID");
+    		if (label.equalsIgnoreCase("Retry")) serviceId = vm.getIntValueOf(md_serviceFailedId);
     		
     		//in the case of medical service
-			if ((vm.getIntValueOf("SV_FAIL_TY") == 0) && label.equalsIgnoreCase("MedicalService1")) serviceId = 4;
-			if ((vm.getIntValueOf("SV_FAIL_TY") == 0) && label.equalsIgnoreCase("MedicalService2")) serviceId = 5;
-			if ((vm.getIntValueOf("SV_FAIL_TY") == 0) && label.equalsIgnoreCase("MedicalService3")) serviceId = 6;
-			if ((vm.getIntValueOf("SV_FAIL_TY") == 0) && label.equalsIgnoreCase("MedicalService4")) serviceId = 7;
-			if ((vm.getIntValueOf("SV_FAIL_TY") == 0) && label.equalsIgnoreCase("MedicalService5")) serviceId = 8;
+			if ((vm.getIntValueOf(md_serviceType) == 0) && label.equalsIgnoreCase("MedicalService1")) serviceId = 4;
+			if ((vm.getIntValueOf(md_serviceType) == 0) && label.equalsIgnoreCase("MedicalService2")) serviceId = 5;
+			if ((vm.getIntValueOf(md_serviceType) == 0) && label.equalsIgnoreCase("MedicalService3")) serviceId = 6;
+			if ((vm.getIntValueOf(md_serviceType) == 0) && label.equalsIgnoreCase("MedicalService4")) serviceId = 7;
+			if ((vm.getIntValueOf(md_serviceType) == 0) && label.equalsIgnoreCase("MedicalService5")) serviceId = 8;
 			
 			//in the case of alarm service
-			if ((vm.getIntValueOf("SV_FAIL_TY") == 1) && label.equalsIgnoreCase("AlarmService1")) serviceId = 1;
-			if ((vm.getIntValueOf("SV_FAIL_TY") == 1) && label.equalsIgnoreCase("AlarmService2")) serviceId = 2;
-			if ((vm.getIntValueOf("SV_FAIL_TY") == 1) && label.equalsIgnoreCase("AlarmService3")) serviceId = 3;
+			if ((vm.getIntValueOf(md_serviceType) == 1) && label.equalsIgnoreCase("AlarmService1")) serviceId = 1;
+			if ((vm.getIntValueOf(md_serviceType) == 1) && label.equalsIgnoreCase("AlarmService2")) serviceId = 2;
+			if ((vm.getIntValueOf(md_serviceType) == 1) && label.equalsIgnoreCase("AlarmService3")) serviceId = 3;
+			
+			//in the case of drug service
+			if ((vm.getIntValueOf(md_serviceType) == 2) && label.equalsIgnoreCase("DrugService1")) serviceId = 9;
+			if ((vm.getIntValueOf(md_serviceType) == 2) && label.equalsIgnoreCase("DrugService2")) serviceId = 9;
+			
 			
 		} catch (PrismLangException e) {
 			// TODO Auto-generated catch block
@@ -446,7 +440,7 @@ public class Planner {
     /**
      * Objective: To generate the adaptation plan
      */
-    public void generatePlan() 
+    public void initialPlan() 
     {
     	 //initialise the prism
     	 try {
@@ -455,6 +449,51 @@ public class Planner {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+    	 
+        
+    	//assign constants values to the model 
+    	try {
+ 			modulesFile.setUndefinedConstants(vm);
+ 		} catch (PrismLangException e) {
+ 			// TODO Auto-generated catch block
+ 			e.printStackTrace();
+ 		}
+    	 
+         //build and check the model
+         try {
+			buildModelbyPrismEx();
+			checkModelbyPrismEx();
+		} catch (PrismException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+              
+         outcomefromModelBuilding();
+         outcomefromModelChecking();
+        
+        try {
+			exportTrans();
+		} catch (PrismException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        //strategy related process
+       	exportStrategy();
+       	
+    }//end of synthesis
+    
+    /**
+     * Objective: To generate the adaptation plan
+     */
+    public void adaptPlan() 
+    {
+    	 //initialise the prism
+    	// try {
+		//	initialisePrism();
+		//} catch (PrismException e) {
+			// TODO Auto-generated catch block
+		//	e.printStackTrace();
+		//}
     	 
         
     	//assign constants values to the model 
@@ -556,21 +595,27 @@ public class Planner {
  		// TODO Auto-generated method stub
 
  		Planner plan = new Planner();
- 	    plan.setConstantsTesting(0,0,5,26,0.03);
-	    plan.generatePlan();
+ 		
+ 		for (int i=0; i < 100; i++)
+ 	    {
+ 			System.out.println("number of cycle :"+i);
+ 			plan.setConstantsTesting(-1,2,-1,26,0.03);
+ 	    
+ 			plan.adaptPlan();
 	  
-		try {
-			//plan.getDecisionState();
-			plan.getAdaptStrategyfromFile();
-		} 
-       	catch (IllegalArgumentException e) {
-       		e.printStackTrace();
-       	}
-       	catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			System.err.println("something not right");
-		}
+ 			try {
+ 				//plan.getDecisionState();
+ 				plan.getAdaptStrategyfromFile();
+ 			} 
+ 			catch (IllegalArgumentException e) {
+ 				e.printStackTrace();
+ 			}
+ 			catch (FileNotFoundException e) {
+ 				// TODO Auto-generated catch block
+ 				e.printStackTrace();
+ 				System.err.println("something not right");
+ 			}
+ 	    }
  	}
      
 }
