@@ -7,7 +7,7 @@ smg
 // player for the adaptation manager
 player con 
 controller, [MedicalService1], [MedicalService2], [MedicalService3],[MedicalService4], [MedicalService5],
-[AlarmService1], [AlarmService2], [AlarmService3]
+[AlarmService1], [AlarmService2], [AlarmService3], [Retry]
 //service A - medical service
 //service B - alarm service
 endplayer
@@ -23,8 +23,10 @@ const TP=1;
 global t:[TE..TP] init TE;
 
 //to limit the adaptation cycle 
+global goal_rt : bool init false;	//adaptation goal
+
+//to terminate the adaptation
 global end : bool init false;	//(absorbing state)
-global goal : bool init false;	//adaptation goal
 
 //to hold the global response time for the composite service
 //used in two modules
@@ -116,25 +118,28 @@ const int CSV_ID = 10;
 // player controller
 
 module controller
-	//0 - means service failure
+	//0 - means service timeout (i.e failure or delay)
 	//1 - service not found
         probe:[0..1] init CUR_PROBE;
 	sel_sv:[-1..MAX_SV] init -1;
-		
+	
+	//for retry
+	[Retry] (t=TP) & (goal_rt=false) & (probe>=0) & (SV_FAIL_TY=0) -> (sel_sv'=SV_FAIL_ID) & (goal_rt'=sat) & (t'=TE);
+
 	//for medical service
-	[MedicalService1] (t=TP) & (goal=false) & (probe>=0) & (SV_FAIL_TY=0) & (SV_FAIL_ID != SV_MEDIC1_ID) ->(sel_sv'=SV_MEDIC1_ID) & (goal'=sat) & (t'=TE);
-        [MedicalService2] (t=TP) & (goal=false) & (probe>=0) & (SV_FAIL_TY=0) & (SV_FAIL_ID != SV_MEDIC2_ID) ->(sel_sv'=SV_MEDIC2_ID) & (goal'=sat) & (t'=TE);
-	[MedicalService3] (t=TP) & (goal=false) & (probe>=0) & (SV_FAIL_TY=0) & (SV_FAIL_ID != SV_MEDIC3_ID) ->(sel_sv'=SV_MEDIC3_ID) & (goal'=sat) & (t'=TE);
-	[MedicalService4] (t=TP) & (goal=false) & (probe>=0) & (SV_FAIL_TY=0) & (SV_FAIL_ID != SV_MEDIC4_ID) ->(sel_sv'=SV_MEDIC4_ID) & (goal'=sat) & (t'=TE);
-	[MedicalService5] (t=TP) & (goal=false) & (probe>=0) & (SV_FAIL_TY=0) & (SV_FAIL_ID != SV_MEDIC5_ID) ->(sel_sv'=SV_MEDIC5_ID) & (goal'=sat) & (t'=TE);
+	[MedicalService1] (t=TP) & (goal_rt=false) & (probe>=0) & (SV_FAIL_TY=0) & (SV_FAIL_ID != SV_MEDIC1_ID) -> (sel_sv'=SV_MEDIC1_ID) & (goal_rt'=sat) & (t'=TE);
+        [MedicalService2] (t=TP) & (goal_rt=false) & (probe>=0) & (SV_FAIL_TY=0) & (SV_FAIL_ID != SV_MEDIC2_ID) -> (sel_sv'=SV_MEDIC2_ID) & (goal_rt'=sat) & (t'=TE);
+	[MedicalService3] (t=TP) & (goal_rt=false) & (probe>=0) & (SV_FAIL_TY=0) & (SV_FAIL_ID != SV_MEDIC3_ID) -> (sel_sv'=SV_MEDIC3_ID) & (goal_rt'=sat) & (t'=TE);
+	[MedicalService4] (t=TP) & (goal_rt=false) & (probe>=0) & (SV_FAIL_TY=0) & (SV_FAIL_ID != SV_MEDIC4_ID) -> (sel_sv'=SV_MEDIC4_ID) & (goal_rt'=sat) & (t'=TE);
+	[MedicalService5] (t=TP) & (goal_rt=false) & (probe>=0) & (SV_FAIL_TY=0) & (SV_FAIL_ID != SV_MEDIC5_ID) -> (sel_sv'=SV_MEDIC5_ID) & (goal_rt'=sat) & (t'=TE);
 
 	//for alarm service
-	[AlarmService1] (t=TP) & (goal=false) & (probe>=0) & (SV_FAIL_TY=1) & (SV_FAIL_ID != SV_ALARM1_ID) ->(sel_sv'=SV_ALARM1_ID) & (goal'=sat) & (t'=TE);
-	[AlarmService2] (t=TP) & (goal=false) & (probe>=0) & (SV_FAIL_TY=1) & (SV_FAIL_ID != SV_ALARM2_ID) ->(sel_sv'=SV_ALARM2_ID) & (goal'=sat) & (t'=TE);
-	[AlarmService3] (t=TP) & (goal=false) & (probe>=0) & (SV_FAIL_TY=1) & (SV_FAIL_ID != SV_ALARM3_ID) ->(sel_sv'=SV_ALARM3_ID) & (goal'=sat) & (t'=TE);
+	[AlarmService1] (t=TP) & (goal_rt=false) & (probe>=0) & (SV_FAIL_TY=1) & (SV_FAIL_ID != SV_ALARM1_ID) -> (sel_sv'=SV_ALARM1_ID) & (goal_rt'=sat) & (t'=TE);
+	[AlarmService2] (t=TP) & (goal_rt=false) & (probe>=0) & (SV_FAIL_TY=1) & (SV_FAIL_ID != SV_ALARM2_ID) -> (sel_sv'=SV_ALARM2_ID) & (goal_rt'=sat) & (t'=TE);
+	[AlarmService3] (t=TP) & (goal_rt=false) & (probe>=0) & (SV_FAIL_TY=1) & (SV_FAIL_ID != SV_ALARM3_ID) -> (sel_sv'=SV_ALARM3_ID) & (goal_rt'=sat) & (t'=TE);
 
 	//terminate
-	[] (t=TP) & (goal=true) & (end=false) -> (end'=true);
+	[] (t=TP) & (goal_rt=true) & (end=false) -> (end'=true);
 endmodule
 
 //====================================================

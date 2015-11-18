@@ -52,7 +52,7 @@ public class Planner {
 	String logPath = "./myLog.txt";
 	String laptopPath = "C:\\Users\\USER\\";
 	String desktopPath = "H:\\";
-	String mainPath = laptopPath;
+	String mainPath = desktopPath;
 	String modelPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\teleAssistance_v3.smg";
 	String propPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\propTeleAssistance.props";
 	String modelConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\ModelConstants.txt";
@@ -384,7 +384,9 @@ public class Planner {
     	//map the selected action from strategy and transition
     	
     	try {
-    	//	System.out.println("SV_FAIL_TY is"+ vm.getIntValueOf("SV_FAIL_TY") );
+    		
+    		//in the case of retry
+    		if (label.equalsIgnoreCase("Retry")) serviceId = vm.getIntValueOf("SV_FAIL_ID");
     		
     		//in the case of medical service
 			if ((vm.getIntValueOf("SV_FAIL_TY") == 0) && label.equalsIgnoreCase("MedicalService1")) serviceId = 4;

@@ -2,14 +2,14 @@ PRISM-games
 ===========
 
 Version: beta
-Date: Mon Nov 16 14:57:34 GMT 2015
-Hostname: Azlan-PC
+Date: Wed Nov 18 10:38:04 GMT 2015
+Hostname: CLPC27
 
 Building model...
 
 Computing reachable states...
- 14 states
-Reachable states exploration and model construction done in 0.027 secs.
+ 17 states
+Reachable states exploration and model construction done in 0.039 secs.
 Sorting reachable states list...
 
-Time for model construction: 0.029 seconds.
+Time for model construction: 0.051 seconds.
