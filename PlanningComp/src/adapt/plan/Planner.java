@@ -53,7 +53,7 @@ public class Planner {
 	String logPath = "./myLog.txt";
 	String laptopPath = "C:\\Users\\USER\\";
 	String desktopPath = "H:\\";
-	String mainPath = laptopPath;
+	String mainPath = desktopPath;
 	String modelPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\teleAssistance_v4.smg";
 	String propPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\propTeleAssistance.props";
 	String modelConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\ModelConstants.txt";
@@ -234,7 +234,19 @@ public class Planner {
 		
 		//property 0 - find the minimum response time
 		//property 1 - find the minimum cost
-		resultSMG = smc.check(model, propertiesFile.getProperty(1)); 
+		if(vm.getIntValueOf(md_goalTY) == 0) {
+			System.out.println("synthesis is based on minimum cost");
+			resultSMG = smc.check(model, propertiesFile.getProperty(0));
+		}
+		if(vm.getIntValueOf(md_goalTY) == 1) {
+			System.out.println("synthesis is based on reliability");
+			resultSMG = smc.check(model, propertiesFile.getProperty(1));
+		}
+		if(vm.getIntValueOf(md_goalTY) == 2) {
+			System.out.println("synthesis is based on minimum response time");
+			resultSMG = smc.check(model, propertiesFile.getProperty(2));
+		}
+		
 	}
     
     public void outcomefromSimEngine() throws PrismException

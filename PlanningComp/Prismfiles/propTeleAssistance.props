@@ -1,6 +1,6 @@
-<<con>> R{"time"}min=? [ F "done" ]
-
 <<con>> R{"cost"}min=? [ F "done" ]
 
-<<con>> R{"reliability"}min=?[F "done"]
+<<con>> R{"reliability"}min=? [ F "done" ]
+
+<<con>> R{"time"}min=? [F "done"]
 
