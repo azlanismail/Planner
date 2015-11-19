@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
 import explicit.Distribution;
@@ -61,11 +62,13 @@ public class Planner {
 	String transPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\transition";
 	
 	//important parameters to the model
-	String md_serviceType = "SV_TY";
-	String md_serviceFailedId = "SV_FAIL_ID";
 	String md_probe = "CUR_PROBE";
+	String md_maxCS = "MAX_CS";
 	String md_maxRT = "MAX_RT";
 	String md_maxFR = "MAX_FR";
+	String md_goalTY = "GOAL_TY";
+	String md_serviceType = "SV_TY";
+	String md_serviceFailedId = "SV_FAIL_ID";
 	int index = 0;
 	String type = null;
 	String md_sv_id = "SV_"+type+""+index+"_ID";
@@ -109,6 +112,10 @@ public class Planner {
 		vm.setValue(md_probe, probeId);
 	}
 	
+	public void setConstantsGoalType(int goalType) {
+		vm.setValue(md_goalTY, goalType);
+	}
+	
 	public void setServiceType(String serviceType) {
 		System.out.println("Type detected and sent to the model is :"+serviceType);
     	if (serviceType.equalsIgnoreCase("MedicalAnalysisService"))
@@ -120,11 +127,16 @@ public class Planner {
 	}
 	
 	public void setConstantsServiceType(int typeId) {
+		System.out.println("Received service type is +"+typeId);
 		vm.setValue(md_serviceType, typeId);
 	}
 	
 	public void setConstantsFailedServiceId(int serviceId) {
 		vm.setValue(md_serviceFailedId, serviceId);
+	}
+	
+	public void setConstantsMaxCost(double maxCS) {
+		vm.setValue(md_maxCS, maxCS);
 	}
 	
 	public void setConstantsMaxResponseTime(int maxRT) {
@@ -150,12 +162,22 @@ public class Planner {
 		vm.setValue(md_sv_cs, cs); vm.setValue(md_sv_fr, fr);
 	}
 	
-	
-	public void setConstantsTesting(int probe, int type, int id, int maxRT, double maxFR) {
+	/**
+	 * 
+	 * @param goalType
+	 * @param probe
+	 * @param type
+	 * @param id
+	 * @param maxRT
+	 * @param maxFR
+	 */
+	public void setConstantsTesting(int goalType, int probe, int type, int id, int maxRT, double maxCS, double maxFR) {
+		setConstantsGoalType(goalType);
 		setConstantsProbe(probe);
 		setConstantsServiceType(type);
 		setConstantsFailedServiceId(id);
 		setConstantsMaxResponseTime(maxRT);
+		setConstantsMaxCost(maxCS);
 		setConstantsMaxFailureRate(maxFR);
 	}
 	
@@ -299,8 +321,11 @@ public class Planner {
 			
         }
 		read.close();
+		
 		if (decState == -1) throw new IllegalArgumentException("Invalid decision state");
 		System.out.println("Decision state is :"+decState);
+		
+		
     	return decState;
     }
     
@@ -346,6 +371,7 @@ public class Planner {
     	int curState = -1;
     	int curAction = -1;
     	String label = null;
+    	boolean status = false;
 		//skip the first line
 		read.nextLine();
 		while (read.hasNextLine()) {
@@ -357,9 +383,10 @@ public class Planner {
 					//skip two columns
 					read.nextInt(); read.nextInt();
 					label = read.next();
-					break;
+					status = true;
 				}
 			}
+			if (status == true) break;
 			read.nextLine();
         }
 		read.close();
@@ -378,20 +405,34 @@ public class Planner {
     		if (label.equalsIgnoreCase("Retry")) serviceId = vm.getIntValueOf(md_serviceFailedId);
     		
     		//in the case of medical service
-			if ((vm.getIntValueOf(md_serviceType) == 0) && label.equalsIgnoreCase("MedicalService1")) serviceId = 4;
-			if ((vm.getIntValueOf(md_serviceType) == 0) && label.equalsIgnoreCase("MedicalService2")) serviceId = 5;
-			if ((vm.getIntValueOf(md_serviceType) == 0) && label.equalsIgnoreCase("MedicalService3")) serviceId = 6;
-			if ((vm.getIntValueOf(md_serviceType) == 0) && label.equalsIgnoreCase("MedicalService4")) serviceId = 7;
-			if ((vm.getIntValueOf(md_serviceType) == 0) && label.equalsIgnoreCase("MedicalService5")) serviceId = 8;
+			//if ((vm.getIntValueOf(md_serviceType) == 0) && label.equalsIgnoreCase("MedicalService1")) serviceId = 4;
+			//if ((vm.getIntValueOf(md_serviceType) == 0) && label.equalsIgnoreCase("MedicalService2")) serviceId = 5;
+			//if ((vm.getIntValueOf(md_serviceType) == 0) && label.equalsIgnoreCase("MedicalService3")) serviceId = 6;
+			//if ((vm.getIntValueOf(md_serviceType) == 0) && label.equalsIgnoreCase("MedicalService4")) serviceId = 7;
+			//if ((vm.getIntValueOf(md_serviceType) == 0) && label.equalsIgnoreCase("MedicalService5")) serviceId = 8;
+			
+			if (label.equalsIgnoreCase("MedicalService1")) serviceId = 4;
+			if (label.equalsIgnoreCase("MedicalService2")) serviceId = 5;
+			if (label.equalsIgnoreCase("MedicalService3")) serviceId = 6;
+			if (label.equalsIgnoreCase("MedicalService4")) serviceId = 7;
+			if (label.equalsIgnoreCase("MedicalService5")) serviceId = 8;
+			
 			
 			//in the case of alarm service
-			if ((vm.getIntValueOf(md_serviceType) == 1) && label.equalsIgnoreCase("AlarmService1")) serviceId = 1;
-			if ((vm.getIntValueOf(md_serviceType) == 1) && label.equalsIgnoreCase("AlarmService2")) serviceId = 2;
-			if ((vm.getIntValueOf(md_serviceType) == 1) && label.equalsIgnoreCase("AlarmService3")) serviceId = 3;
-			
+			//if ((vm.getIntValueOf(md_serviceType) == 1) && label.equalsIgnoreCase("AlarmService1")) serviceId = 1;
+			//if ((vm.getIntValueOf(md_serviceType) == 1) && label.equalsIgnoreCase("AlarmService2")) serviceId = 2;
+			//if ((vm.getIntValueOf(md_serviceType) == 1) && label.equalsIgnoreCase("AlarmService3")) serviceId = 3;
+		
+			if (label.equalsIgnoreCase("AlarmService1")) serviceId = 1;
+			if (label.equalsIgnoreCase("AlarmService2")) serviceId = 2;
+			if (label.equalsIgnoreCase("AlarmService3")) serviceId = 3;
+		
 			//in the case of drug service
-			if ((vm.getIntValueOf(md_serviceType) == 2) && label.equalsIgnoreCase("DrugService1")) serviceId = 9;
-			if ((vm.getIntValueOf(md_serviceType) == 2) && label.equalsIgnoreCase("DrugService2")) serviceId = 9;
+			//if ((vm.getIntValueOf(md_serviceType) == 2) && label.equalsIgnoreCase("DrugService1")) serviceId = 9;
+			//if ((vm.getIntValueOf(md_serviceType) == 2) && label.equalsIgnoreCase("DrugService2")) serviceId = 9;
+			
+			if (label.equalsIgnoreCase("DrugService1")) serviceId = 9;
+			if (label.equalsIgnoreCase("DrugService2")) serviceId = 9;
 			
 			
 		} catch (PrismLangException e) {
@@ -408,7 +449,7 @@ public class Planner {
      * @return
      * @throws FileNotFoundException
      */
-    public int getAdaptStrategyfromFile() throws FileNotFoundException
+    public int getAdaptStrategyfromFile_old() throws FileNotFoundException
     {    	
     	int choice = 0;
     	int decState = getDecisionState();
@@ -436,6 +477,93 @@ public class Planner {
 		return getServiceIdfromLabel(label);
     }
     
+    public int getAdaptStrategyfromFile() throws IllegalArgumentException, FileNotFoundException
+    {   
+    	//==============Get the decision strategy
+    	//read from transition file
+    	Scanner read = new Scanner(new BufferedReader(new FileReader(transPath)));
+		//read.useDelimiter(",");
+		int prevState = -1;
+		int curState = -1;
+		int decState = -1;
+		int count = 0;
+		//skip the first line
+		read.nextLine();
+		prevState = read.nextInt();
+		read.nextLine();
+		//System.out.println("prev state is "+prevState);
+		while (read.hasNextLine()) {
+		   	curState = read.nextInt();
+		   //	System.out.println("current state is "+curState);
+			if (prevState == curState) {
+				decState = curState;
+				break;
+			}
+			else {
+				prevState = curState;
+			}
+			read.nextLine();
+			
+        }
+		read.close();
+		
+		if (decState == -1) throw new IllegalArgumentException("Invalid decision state");
+		System.out.println("Decision state is :"+decState);
+		
+    	//========get the strategy
+    	int choice = 0;
+    	//int decState = getDecisionState();
+    	
+    	//Read from the exported strategy
+    	Scanner readS = new Scanner(new BufferedReader(new FileReader(stratPath)));
+		//read.useDelimiter(",");
+		int inData = -1;
+		
+		//need to skip the first two lines
+		readS.nextLine(); readS.nextLine();
+		while (readS.hasNextLine()) {
+			 inData = readS.nextInt();
+			 //find the decision state
+			 if (inData == decState){
+				 //pick up the selected choice
+				 choice = readS.nextInt();
+				 break;
+			 }
+        }
+		readS.close();
+		System.out.println("Obtained strategy is "+choice);
+		
+		//===========get the label======================
+		Scanner readL = new Scanner(new BufferedReader(new FileReader(transPath)));
+		curState = -1;
+		int decAction = choice;
+    	int curAction = -1;
+    	String label = null;
+    	boolean status = false;
+		//skip the first line
+		readL.nextLine();
+		while (readL.hasNextLine()) {
+		   	curState = readL.nextInt();
+		   //	System.out.println("current state is "+curState);
+			if (curState == decState) {
+				curAction = readL.nextInt();
+				if (curAction == decAction) {
+					//skip two columns
+					readL.nextInt(); readL.nextInt();
+					label = readL.next();
+					status = true;
+				}
+			}
+			if (status == true) break;
+			readL.nextLine();
+        }
+		readL.close();
+		System.out.println("Label is :"+label);
+		
+		//==========get the id
+		System.out.println("Service id is "+getServiceIdfromLabel(label));
+		return getServiceIdfromLabel(label);
+    }
    
     /**
      * Objective: To generate the adaptation plan
@@ -595,11 +723,13 @@ public class Planner {
  		// TODO Auto-generated method stub
 
  		Planner plan = new Planner();
- 		
- 		for (int i=0; i < 100; i++)
+ 		Random rand = new Random();
+ 		int serviceType = -1;
+ 		for (int i=0; i < 5000; i++)
  	    {
  			System.out.println("number of cycle :"+i);
- 			plan.setConstantsTesting(-1,2,-1,26,0.03);
+ 			serviceType = rand.nextInt(2);
+ 			plan.setConstantsTesting(1,-1,serviceType,-1,26,20,0.7);
  	    
  			plan.adaptPlan();
 	  
