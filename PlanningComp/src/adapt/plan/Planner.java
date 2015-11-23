@@ -54,7 +54,8 @@ public class Planner {
 	String laptopPath = "C:\\Users\\USER\\";
 	String desktopPath = "H:\\";
 	String mainPath = laptopPath;
-	String modelPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\teleAssistance_v4.smg";
+	String modelPath1 = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\teleAssistanceInit_v1.smg";
+	String modelPath2 = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\teleAssistanceAdapt_v1.smg";
 	String propPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\propTeleAssistance.props";
 	String modelConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\ModelConstants.txt";
 	String propConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\PropConstants.txt";
@@ -77,7 +78,7 @@ public class Planner {
 	String md_sv_fr = "SV_"+type+""+index+"_FR";
 
 		
-	public Planner()
+	public Planner(int stage)
 	{
 		
 		mainLog = new PrismFileLog(logPath);
@@ -86,7 +87,11 @@ public class Planner {
         
     	//for parsing model and property file
     	try {
-			modulesFile = prism.parseModelFile(new File(modelPath));
+    		if (stage == 0)
+    			modulesFile = prism.parseModelFile(new File(modelPath1));
+    		else
+    			modulesFile = prism.parseModelFile(new File(modelPath2));
+    			
 			propertiesFile = prism.parsePropertiesFile(modulesFile, new File(propPath));
 		} catch (FileNotFoundException | PrismLangException e) {
 			// TODO Auto-generated catch block
@@ -181,6 +186,17 @@ public class Planner {
 		setConstantsMaxFailureRate(maxFR);
 	}
 	
+	public void setConstantsInitialTesting(int goalType, int type, int maxRT, double maxCS, double maxFR) {
+		setConstantsGoalType(goalType);
+		//setConstantsProbe(probe);
+		setConstantsServiceType(type);
+		//setConstantsFailedServiceId(id);
+		setConstantsMaxResponseTime(maxRT);
+		setConstantsMaxCost(maxCS);
+		setConstantsMaxFailureRate(maxFR);
+	}
+	
+	
 	
 		
 	public void setConstantsforModel(String inFile) throws PrismLangException, FileNotFoundException {
@@ -235,15 +251,15 @@ public class Planner {
 		//property 0 - find the minimum response time
 		//property 1 - find the minimum cost
 		if(vm.getIntValueOf(md_goalTY) == 0) {
-			System.out.println("synthesis is based on minimum cost");
+			System.out.println("Planning is based on minimum cost");
 			resultSMG = smc.check(model, propertiesFile.getProperty(0));
 		}
 		if(vm.getIntValueOf(md_goalTY) == 1) {
-			System.out.println("synthesis is based on reliability");
+			System.out.println("Planning is based on reliability");
 			resultSMG = smc.check(model, propertiesFile.getProperty(1));
 		}
 		if(vm.getIntValueOf(md_goalTY) == 2) {
-			System.out.println("synthesis is based on minimum response time");
+			System.out.println("Planning is based on minimum response time");
 			resultSMG = smc.check(model, propertiesFile.getProperty(2));
 		}
 		
@@ -734,14 +750,17 @@ public class Planner {
      public static void main(String[] args) {
  		// TODO Auto-generated method stub
 
- 		Planner plan = new Planner();
+    	//0-means the adaptation stage
+    	//1-means the adaptation stage
+    	int stage = 0;
+ 		Planner plan = new Planner(stage); 
  		Random rand = new Random();
  		int serviceType = -1;
- 		for (int i=0; i < 100; i++)
+ 		for (int i=0; i < 500; i++)
  	    {
  			System.out.println("number of cycle :"+i);
  			serviceType = rand.nextInt(2);
- 			plan.setConstantsTesting(1,-1,serviceType,-1,26,20,0.7);
+ 			plan.setConstantsTesting(0,-1,serviceType,-1,26,20,0.7);
  	    
  			plan.adaptPlan();
 	  
