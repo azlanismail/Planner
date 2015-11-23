@@ -53,7 +53,7 @@ public class Planner {
 	String logPath = "./myLog.txt";
 	String laptopPath = "C:\\Users\\USER\\";
 	String desktopPath = "H:\\";
-	String mainPath = desktopPath;
+	String mainPath = laptopPath;
 	String modelPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\teleAssistance_v4.smg";
 	String propPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\propTeleAssistance.props";
 	String modelConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\ModelConstants.txt";
@@ -737,7 +737,7 @@ public class Planner {
  		Planner plan = new Planner();
  		Random rand = new Random();
  		int serviceType = -1;
- 		for (int i=0; i < 5000; i++)
+ 		for (int i=0; i < 100; i++)
  	    {
  			System.out.println("number of cycle :"+i);
  			serviceType = rand.nextInt(2);
