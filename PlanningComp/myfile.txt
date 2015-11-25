@@ -1,2 +1,0 @@
-$MD.strat-v0.1
-Adv:

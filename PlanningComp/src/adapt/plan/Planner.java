@@ -51,17 +51,29 @@ public class Planner {
 	SMGModelChecker smc;
 	
 	String logPath = "./myLog.txt";
-	String laptopPath = "C:\\Users\\USER\\";
-	String desktopPath = "H:\\";
-	String mainPath = laptopPath;
-	String modelPath1 = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\teleAssistanceInit_v1.smg";
-	String modelPath2 = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\teleAssistanceAdapt_v1.smg";
-	String propPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\propTeleAssistance.props";
-	String modelConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\ModelConstants.txt";
-	String propConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\PropConstants.txt";
-	String stratPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\strategy";
-	String transPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\transition";
-	
+//	String laptopPath = "C:\\Users\\USER\\";
+//	String desktopPath = "H:\\";
+//	String mainPath = desktopPath;
+//	String modelPath1 = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\teleAssistanceInit_v1.smg";
+//	String modelPath2 = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\teleAssistanceAdapt_v1.smg";
+//	String propPath = mainPath+"git\\Planner\\PlanningComp\\Prismfiles\\propTeleAssistance.props";
+//	String modelConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\ModelConstants.txt";
+//	String propConstPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\PropConstants.txt";
+//	String stratPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\strategy";
+//	String transPath = mainPath+"git\\Planner\\PlanningComp\\IOFiles\\transition";
+
+	String laptopPath = "C:/Users/USER/";
+	String desktopPath = "H:/";
+	String genericPath = "/";
+	String mainPath = genericPath;
+	String modelPath1 = mainPath+"git/Planner/PlanningComp/Prismfiles/teleAssistanceInit_v1.smg";
+	String modelPath2 = mainPath+"git/Planner/PlanningComp/Prismfiles/teleAssistanceAdapt_v1.smg";
+	String propPath = mainPath+"git/Planner/PlanningComp/Prismfiles/propTeleAssistance.props";
+	String modelConstPath = mainPath+"git/Planner/PlanningComp/IOFiles/ModelConstants.txt";
+	String propConstPath = mainPath+"git/Planner/PlanningComp/IOFiles/PropConstants.txt";
+	String stratPath = mainPath+"git/Planner/PlanningComp/IOFiles/strategy";
+	String transPath = mainPath+"git/Planner/PlanningComp/IOFiles/transition";
+
 	//important parameters to the model
 	String md_probe = "CUR_PROBE";
 	String md_maxCS = "MAX_CS";
@@ -756,7 +768,7 @@ public class Planner {
  		Planner plan = new Planner(stage); 
  		Random rand = new Random();
  		int serviceType = -1;
- 		for (int i=0; i < 500; i++)
+ 		for (int i=0; i < 100; i++)
  	    {
  			System.out.println("number of cycle :"+i);
  			serviceType = rand.nextInt(2);
