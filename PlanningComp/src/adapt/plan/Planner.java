@@ -65,7 +65,7 @@ public class Planner {
 	String laptopPath = "C:/Users/USER/";
 	String desktopPath = "H:/";
 	String genericPath = "/";
-	String mainPath = genericPath;
+	String mainPath = laptopPath;
 	String modelPath1 = mainPath+"git/Planner/PlanningComp/Prismfiles/teleAssistanceInit_v1.smg";
 	String modelPath2 = mainPath+"git/Planner/PlanningComp/Prismfiles/teleAssistanceAdapt_v1.smg";
 	String propPath = mainPath+"git/Planner/PlanningComp/Prismfiles/propTeleAssistance.props";
