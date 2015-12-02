@@ -5,8 +5,8 @@
 3 0 9 1
 4 0 10 1
 5 0 11 1
-6 0 2 1 Retry
-6 1 1 1 MedicalService1
+6 0 1 1 MedicalService1
+6 1 2 1 MedicalService2
 6 2 3 1 MedicalService3
 6 3 4 1 MedicalService4
 6 4 5 1 MedicalService5
