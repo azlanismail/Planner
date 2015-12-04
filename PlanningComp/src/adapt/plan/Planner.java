@@ -58,7 +58,6 @@ public class Planner {
 	String desktopPath = "H:/git/Planner/PlanningComp/";
 	String genericPath = "/";
 	String mainPath = laptopPath;
-	//String modelPath1 = mainPath+"Prismfiles/teleAssistanceInit_v1.smg";
 	String modelPath = mainPath+"Prismfiles/teleAssistanceAdapt_v2.smg";
 	String propPath = mainPath+"Prismfiles/propTeleAssistance.props";
 	String modelConstPath = mainPath+"IOFiles/ModelConstants.txt";
@@ -93,11 +92,6 @@ public class Planner {
 		initiatePlanner();
 	}
 	
-	public Planner(int sg, int a)
-	{
-		initiatePlanner();
-	}
-	
 	private void initiatePlanner(){
 		mainLog = new PrismFileLog(logPath);
         prism = new Prism(mainLog , mainLog);
@@ -105,12 +99,8 @@ public class Planner {
         
     	//for parsing model and property file
     	try {
-    	//	if (this.stage == 0)
     			modulesFile = prism.parseModelFile(new File(modelPath));
-    	//	else
-    	//		modulesFile = prism.parseModelFile(new File(modelPath2));
-    			
-			propertiesFile = prism.parsePropertiesFile(modulesFile, new File(propPath));
+    			propertiesFile = prism.parsePropertiesFile(modulesFile, new File(propPath));
 		} catch (FileNotFoundException | PrismLangException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -278,21 +268,12 @@ public class Planner {
 			System.out.println("Planning is based on multiobjective");
 			resultSMG = smc.check(model, propertiesFile.getProperty(4));
 		}
-	}
-    
-    public void outcomefromSimEngine() throws PrismException
-    {
-    	System.out.println("The current state (from simEngine) is :"+simEngine.getCurrentState());
-        System.out.println("The number of choice (from simEngine) is :"+simEngine.getNumChoices());
-        System.out.println("The number of transition (from simEngine) is :"+simEngine.getNumTransitions());
-        System.out.println("The transition list (from simEngine) is:"+simEngine.getTransitionList() );
-    }
-	
+	}	
     
     public void outcomefromModelChecking()
     {
-    	// System.out.println("The result from model checking (SMG) is :"+ resultSMG.getResultString());
-    	// System.out.println("The outcome of the strategy is :"+smc.getStrategy());
+    	 System.out.println("The result from model checking (SMG) is :"+ resultSMG.getResultString());
+    	 System.out.println("The outcome of the strategy is :"+smc.getStrategy());
     }
     
     public void outcomefromModelBuilding()
