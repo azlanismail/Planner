@@ -71,6 +71,7 @@ public class Planner {
 	public Planner(int sg) {
 		this.stage = sg;
 		initiatePlanner();
+		initializeServiceProfile();
 	}
 	
 	private void initiatePlanner(){
@@ -135,6 +136,25 @@ public class Planner {
 	
 	public void setConstantsMaxFailureRate(double maxFR) {
 		vm.setValue(md_maxFR, maxFR);
+	}
+	
+	public void initializeServiceProfile(){
+		//set the service profiles for alarm service
+ 		setConstantsServiceProfile(1, 11, 4.0, 0.11);
+ 		setConstantsServiceProfile(2, 9, 12.0, 0.04);
+		setConstantsServiceProfile(3, 3, 2.0, 0.18);
+		
+		//set the service profiles for medical analysis service
+		setConstantsServiceProfile(4,22,4.0,0.12);
+		setConstantsServiceProfile(5,27,14.0,0.07);
+		setConstantsServiceProfile(6,31,2.15,0.18);
+		setConstantsServiceProfile(7,29,7.3,0.25);
+		setConstantsServiceProfile(8,20,11.9,0.05);
+		
+		//set the service profiles for drug service
+		setConstantsServiceProfile(9,1,2,0.01);
+		setConstantsServiceProfile(10,1,2,0.01);
+		
 	}
 	
 	public void setConstantsServiceProfile(int i, int rt, double cs, double fr) {
@@ -528,7 +548,8 @@ public class Planner {
  		for (int i=0; i < 100; i++)
  	    {
  			System.out.println("number of cycle :"+i);
- 			serviceType = rand.nextInt(2);
+ 			//serviceType = rand.nextInt(3);
+ 			serviceType = 2;
  			plan.setConstantsTesting(3,-1,serviceType,-1,26,20,0.7);
  	    
  			plan.generate();

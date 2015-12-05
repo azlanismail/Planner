@@ -245,7 +245,9 @@ formula mn_drug_cs = min(SV_DRUG1_CS, SV_DRUG2_CS);
 
 formula uv_cs = ( SV_TY = SV_TY_MEDIC ? (mx_medic_cs - sv_cs) / (mx_medic_cs - mn_medic_cs) :
 		( SV_TY = SV_TY_ALARM ? (mx_alarm_cs - sv_cs) / (mx_alarm_cs - mn_alarm_cs) :
-		( SV_TY = SV_TY_DRUG ? (mx_drug_cs - sv_cs) / (mx_drug_cs - mn_drug_cs) : 0 )));
+		//( SV_TY = SV_TY_DRUG ? (mx_drug_cs - sv_cs) / (mx_drug_cs - mn_drug_cs) : 0 )));
+		//simply set to 0 since there is actually a single component service for drug
+		( SV_TY = SV_TY_DRUG ? 0 : 0 )));
 
 //computing the utility value for response time based on SAW technique
 formula mx_medic_rt = max(SV_MEDIC1_RT, SV_MEDIC2_RT, SV_MEDIC3_RT, SV_MEDIC4_RT, SV_MEDIC5_RT);
@@ -259,7 +261,8 @@ formula mn_drug_rt = min(SV_DRUG1_RT, SV_DRUG2_RT);
 
 formula uv_rt = ( SV_TY = SV_TY_MEDIC ? (mx_medic_rt - sv_rt) / (mx_medic_rt - mn_medic_rt) :
 		( SV_TY = SV_TY_ALARM ? (mx_alarm_rt - sv_rt) / (mx_alarm_rt - mn_alarm_rt) :
-		( SV_TY = SV_TY_DRUG ? (mx_drug_rt - sv_rt) / (mx_drug_rt - mn_drug_rt) : 0 )));
+		//( SV_TY = SV_TY_DRUG ? (mx_drug_rt - sv_rt) / (mx_drug_rt - mn_drug_rt) : 0 )));
+		( SV_TY = SV_TY_DRUG ? 0 : 0 )));
 
 //computing the utility value for failure rate based on SAW techniue
 formula mx_medic_fr = max(SV_MEDIC1_FR, SV_MEDIC2_FR, SV_MEDIC3_FR, SV_MEDIC4_FR, SV_MEDIC5_FR);
@@ -273,7 +276,8 @@ formula mn_drug_fr = min(SV_DRUG1_FR, SV_DRUG2_FR);
 
 formula uv_fr = ( SV_TY = SV_TY_MEDIC ? (mx_medic_fr - sv_fr) / (mx_medic_fr - mn_medic_fr) :
 		( SV_TY = SV_TY_ALARM ? (mx_alarm_fr - sv_fr) / (mx_alarm_fr - mn_alarm_fr) :
-		( SV_TY = SV_TY_DRUG ? (mx_drug_fr - sv_fr) / (mx_drug_fr - mn_drug_fr) : 0 )));
+		//( SV_TY = SV_TY_DRUG ? (mx_drug_fr - sv_fr) / (mx_drug_fr - mn_drug_fr) : 0 )));
+		( SV_TY = SV_TY_DRUG ? 0 : 0 )));
 
 //compute the overall utility value
 formula uv_all = uv_cs * WG_CS + uv_rt * WG_RT + uv_fr * WG_FR;

@@ -7,5 +7,5 @@ const double MAXFR = 0.7;
 
 <<con>> R{"time"}min=? [ F "done" ]
 
-<<con>> R{"utilityGoal"} max=? [ F "done" ]
+<<con>> R{"utilityGoal"}max=? [ F "done" ]
 
