@@ -109,9 +109,7 @@ const int    SV_DRUG2_RT = 1;
 const double SV_DRUG2_CS = 0.1;
 const double SV_DRUG2_FR = 0.01;
 const int    SV_DRUG2_OP = 2;
-
-//composite service
-const int CSV_ID = 10; 
+ 
 
 //======================================================
 //to control the turn

@@ -4,23 +4,15 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
-import explicit.Distribution;
 import explicit.Model;
 import explicit.PrismExplicit;
-import explicit.SMG;
 import explicit.SMGModelChecker;
-import explicit.STPG;
-import explicit.STPGModelChecker;
-import explicit.rewards.ConstructRewards;
-import explicit.rewards.SMGRewards;
 import parser.Values;
 import parser.ast.ModulesFile;
 import parser.ast.PropertiesFile;
-import parser.ast.RewardStruct;
 import prism.Prism;
 import prism.PrismException;
 import prism.PrismFileLog;
@@ -29,11 +21,7 @@ import prism.PrismLog;
 import prism.PrismSettings;
 import prism.Result;
 import simulator.SimulatorEngine;
-import strat.InvalidStrategyStateException;
-import strat.MemorylessDeterministicStrategy;
-import strat.Strategies;
 import strat.Strategy;
-
 
 
 public class Planner {
@@ -58,7 +46,7 @@ public class Planner {
 	String desktopPath = "H:/git/Planner/PlanningComp/";
 	String genericPath = "/";
 	String mainPath = laptopPath;
-	String modelPath = mainPath+"Prismfiles/teleAssistanceAdapt_v2.smg";
+	String modelPath = mainPath+"Prismfiles/teleAssistanceAdapt_v3.smg";
 	String propPath = mainPath+"Prismfiles/propTeleAssistance.props";
 	String modelConstPath = mainPath+"IOFiles/ModelConstants.txt";
 	String propConstPath = mainPath+"IOFiles/PropConstants.txt";
@@ -76,13 +64,6 @@ public class Planner {
 	String md_goalTY = "GOAL_TY";
 	String md_serviceType = "SV_TY";
 	String md_serviceFailedId = "SV_FAIL_ID";
-	int index = 0;
-	String type = null;
-	String md_sv_id = "SV_"+type+""+index+"_ID";
-	String md_sv_rt = "SV_"+type+""+index+"_RT";
-	String md_sv_cs = "SV_"+type+""+index+"_CS";
-	String md_sv_fr = "SV_"+type+""+index+"_FR";
-	
 	
 	//Defining properties for the planner
 	private int stage;
@@ -157,18 +138,38 @@ public class Planner {
 	}
 	
 	public void setConstantsServiceProfile(int i, int rt, double cs, double fr) {
-		
-		if (i <= 3) {
-			index = i; 
+		String type = null;
+		int id = 0;
+		if(i <= 3) {
 			type = "ALARM";
+			id = i;
 		}
-		else{
-			index = i;
+		else if (i <= 8){
 			type = "MEDIC";
+			if (i == 4) id = 1;
+			if (i == 5) id = 2;
+			if (i == 6) id = 3;
+			if (i == 7) id = 4;
+			if (i == 8) id = 5;
 		}
-	
-		vm.setValue(md_sv_id, i); vm.setValue(md_sv_rt, rt);
-		vm.setValue(md_sv_cs, cs); vm.setValue(md_sv_fr, fr);
+		else if (i <= 10){
+			type = "DRUG";
+			if (i == 9) id = 1;
+			if (i == 10) id = 2;
+			
+		}
+		else
+			System.err.println("Parameters are not matched with the parameters in the model");
+		
+		String md_sv_id = "SV_"+type+""+id+"_ID";
+		String md_sv_rt = "SV_"+type+""+id+"_RT";
+		String md_sv_cs = "SV_"+type+""+id+"_CS";
+		String md_sv_fr = "SV_"+type+""+id+"_FR";
+		
+		vm.setValue(md_sv_id, i); 
+		vm.setValue(md_sv_rt, rt);
+		vm.setValue(md_sv_cs, cs); 
+		vm.setValue(md_sv_fr, fr);
 	}
 	
 	/**
@@ -190,6 +191,13 @@ public class Planner {
 		setConstantsMaxFailureRate(maxFR);
 	}
 	
+	/**
+	 * It is used in QoS requirement classes and to assign parameters for the initial stage planning
+	 * @param goalType
+	 * @param probe
+	 * @param type
+	 * @param id
+	 */
 	public void setConstantsParams(int goalType, int probe, String type, int id) {
 		setConstantsGoalType(goalType);
 		setConstantsProbe(probe);
@@ -200,43 +208,43 @@ public class Planner {
 		//setConstantsMaxFailureRate(maxFR);
 	}
 	
-	public void setConstantsforModel(String inFile) throws PrismLangException, FileNotFoundException {
-		Scanner readMod = new Scanner(new BufferedReader(new FileReader(inFile)));
-		//read.useDelimiter(",");
-		String param = null;
-		int val = -1;
-		int count = 0;
-		while (readMod.hasNext()) {
-			 param = readMod.next();
-			 val = Integer.parseInt(readMod.next());
-			 vm.addValue(param, val);
-			 count++;
-        }
-		if (count > 0)
-			modulesFile.setUndefinedConstants(vm);
-		else
-			modulesFile.setUndefinedConstants(null);
-		
-		readMod.close();
-	}
+//	public void setConstantsforModel(String inFile) throws PrismLangException, FileNotFoundException {
+//		Scanner readMod = new Scanner(new BufferedReader(new FileReader(inFile)));
+//		//read.useDelimiter(",");
+//		String param = null;
+//		int val = -1;
+//		int count = 0;
+//		while (readMod.hasNext()) {
+//			 param = readMod.next();
+//			 val = Integer.parseInt(readMod.next());
+//			 vm.addValue(param, val);
+//			 count++;
+//        }
+//		if (count > 0)
+//			modulesFile.setUndefinedConstants(vm);
+//		else
+//			modulesFile.setUndefinedConstants(null);
+//		
+//		readMod.close();
+//	}
 	
-	public void setConstantsforProperty(String inFile) throws PrismLangException, FileNotFoundException
-	{
-		Scanner readProp = new Scanner(new BufferedReader(new FileReader(inFile)));
-		String param = null;
-		int val = -1;
-		int count = 0;
-		while (readProp.hasNext()) {
-			 param = readProp.next();
-			 val = Integer.parseInt(readProp.next());
-			 vp.addValue(param, val);
-			 count++;
-        }
-		if (count > 0)
-			propertiesFile.setUndefinedConstants(vp);
-		else
-			propertiesFile.setUndefinedConstants(null);
-	}
+//	public void setConstantsforProperty(String inFile) throws PrismLangException, FileNotFoundException
+//	{
+//		Scanner readProp = new Scanner(new BufferedReader(new FileReader(inFile)));
+//		String param = null;
+//		int val = -1;
+//		int count = 0;
+//		while (readProp.hasNext()) {
+//			 param = readProp.next();
+//			 val = Integer.parseInt(readProp.next());
+//			 vp.addValue(param, val);
+//			 count++;
+//        }
+//		if (count > 0)
+//			propertiesFile.setUndefinedConstants(vp);
+//		else
+//			propertiesFile.setUndefinedConstants(null);
+//	}
 
 	public void buildModelbyPrismEx() throws PrismException
 	{
@@ -367,7 +375,6 @@ public class Planner {
 		int prevState = -1;
 		int curState = -1;
 		int decState = -1;
-		int count = 0;
 		//skip the first line
 		read.nextLine();
 		prevState = read.nextInt();
@@ -497,8 +504,25 @@ public class Planner {
 
     	//0-means the initial stage
     	//1-means the adaptation stage
-    	int stage = 0;
+    	int stage = 1;
  		Planner plan = new Planner(stage); 
+ 		
+ 		//set the service profiles for alarm service
+ 		plan.setConstantsServiceProfile(1, 11, 4.0, 0.11);
+ 		plan.setConstantsServiceProfile(2, 9, 12.0, 0.04);
+		plan.setConstantsServiceProfile(3, 3, 2.0, 0.18);
+		
+		//set the service profiles for medical analysis service
+		plan.setConstantsServiceProfile(4,22,4.0,0.12);
+		plan.setConstantsServiceProfile(5,27,14.0,0.07);
+		plan.setConstantsServiceProfile(6,31,2.15,0.18);
+		plan.setConstantsServiceProfile(7,29,7.3,0.25);
+		plan.setConstantsServiceProfile(8,20,11.9,0.05);
+		
+		//set the service profiles for drug service
+		plan.setConstantsServiceProfile(9,1,2,0.01);
+		plan.setConstantsServiceProfile(10,1,2,0.01);
+				
  		Random rand = new Random();
  		int serviceType = -1;
  		for (int i=0; i < 100; i++)
