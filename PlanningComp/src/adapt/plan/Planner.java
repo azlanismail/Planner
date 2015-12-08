@@ -44,7 +44,7 @@ public class Planner {
 	String logPath = "./myLog.txt";
 	String laptopPath = "C:/Users/USER/git/Planner/PlanningComp/";
 	String desktopPath = "H:/git/Planner/PlanningComp/";
-	String genericPath = "/";
+	String linuxPath = "/home/azlani/git/Planner/PlanningComp/";
 	String mainPath = laptopPath;
 	String modelPath = mainPath+"Prismfiles/teleAssistanceAdapt_v3.smg";
 	String propPath = mainPath+"Prismfiles/propTeleAssistance.props";
