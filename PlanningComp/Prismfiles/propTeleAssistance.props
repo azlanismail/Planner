@@ -1,11 +1,11 @@
 const double MAXCS = 20;
 const double MAXFR = 0.7;
 
-<<con>> R{"cost"}min=? [ F "done" ]
+<<am>> R{"cost"}min=? [ F "done" ]
 
-<<con>> R{"reliability"}min=? [ F "done" ]
+<<am>> R{"reliability"}min=? [ F "done" ]
 
-<<con>> R{"time"}min=? [ F "done" ]
+<<am>> R{"time"}min=? [ F "done" ]
 
-<<con>> R{"utilityGoal"}max=? [ F "done" ]
+<<am>> R{"utilityGoal"}max=? [ F "done" ]
 

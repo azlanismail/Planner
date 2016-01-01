@@ -379,11 +379,8 @@ public class Planner {
     }
     
     
-    
-    
-    public int getAdaptStrategyfromAdv() throws IllegalArgumentException, FileNotFoundException
-    {   
-    	//==============Get the decision strategy
+    public int getDecisionStateM1() throws FileNotFoundException
+    {
     	//read from transition file
     	Scanner read;
     	
@@ -418,6 +415,58 @@ public class Planner {
 		if (decState == -1) throw new IllegalArgumentException("Invalid decision state");
 		System.out.println("Decision state is :"+decState);
 		
+		return decState;
+    }
+    
+    
+    public int getDecisionStateM2() throws FileNotFoundException
+    {
+    	//read from transition file
+    	Scanner read;
+    	
+    	if (this.stage ==0)
+    		read = new Scanner(new BufferedReader(new FileReader(transPath1)));
+    	else
+    		read = new Scanner(new BufferedReader(new FileReader(transPath2)));
+		//read.useDelimiter(",");
+		int prevState = -1;
+		int curState = -1;
+		int decState = -1;
+		//skip the first line
+		read.nextLine();
+		
+		//read four items
+		
+		//if the fifth item is not null then its the solution
+		prevState = read.nextInt();
+		read.nextLine();
+		//System.out.println("prev state is "+prevState);
+		while (read.hasNextLine()) {
+		   	curState = read.nextInt();
+		   //	System.out.println("current state is "+curState);
+			if (prevState == curState) {
+				decState = curState;
+				break;
+			}
+			else {
+				prevState = curState;
+			}
+			read.nextLine();
+			
+        }
+		read.close();
+		
+		if (decState == -1) throw new IllegalArgumentException("Invalid decision state");
+		System.out.println("Decision state is :"+decState);
+		
+		return decState;
+    }
+    
+    public int getAdaptStrategyfromAdv() throws IllegalArgumentException, FileNotFoundException
+    {   
+    	//==============Get the decision strategy
+    	int decState = getDecisionStateM1();
+		
     	//========get the strategy
     	int choice = 0;
     	//int decState = getDecisionState();
@@ -451,7 +500,7 @@ public class Planner {
     		readL = new Scanner(new BufferedReader(new FileReader(transPath1)));
     	else
     		readL = new Scanner(new BufferedReader(new FileReader(transPath2)));
-		curState = -1;
+		int curState = -1;
 		int decAction = choice;
     	int curAction = -1;
     	String label = null;
@@ -549,7 +598,7 @@ public class Planner {
  	    {
  			System.out.println("number of cycle :"+i);
  			//serviceType = rand.nextInt(3);
- 			serviceType = 2;
+ 			serviceType = 0;
  			plan.setConstantsTesting(3,-1,serviceType,-1,26,20,0.7);
  	    
  			plan.generate();

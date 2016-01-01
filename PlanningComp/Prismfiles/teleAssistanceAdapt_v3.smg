@@ -5,7 +5,7 @@
 smg
 
 // player for the controller
-player con 
+player am 
 controller, [MedicalService1], [MedicalService2], [MedicalService3],[MedicalService4], [MedicalService5],
 [AlarmService1], [AlarmService2], [AlarmService3], [DrugService1], [DrugService2], [Retry]
 endplayer
