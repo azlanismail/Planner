@@ -29,7 +29,7 @@ const int GOAL_TY_MULTI = 4;	//for multiobjectives
 
 const double MAX_CS = 20; 
 const double MAX_FR = 0.7;
-const int MAX_RT = 26 + MAX_TOTAL_DELAY;	//maximum response time - to limit the goal
+const int MAX_RT = 26; // + MAX_TOTAL_DELAY;	//maximum response time - to limit the goal
 const int INIT_RT= 0; 	//initial response time
 
 const double WG_CS = 0.4; //to support utility decision making
@@ -115,7 +115,7 @@ const double SV_DRUG2_FR; // = 0.01;
 //to control the turn
 const TE=0;
 const TP=1;
-global t:[TE..TP] init TE;
+global t:[TE..TP] init TP;
 
 //to constraint the selection
 global goal : bool init false;	//requirement
@@ -159,19 +159,23 @@ endmodule
 
 //====================================================
 //player environment
-const MIN_DELAY = 0;
-const MAX_DELAY = 3;
-const CUR_DELAY = 0;
-const MAX_TOTAL_DELAY = 10;
+const MIN_DELAY; // = 0;
+const MAX_DELAY; // = 5;
+const CUR_DELAY; // = 0;
+//const MAX_TOTAL_DELAY = 10;
 
+//to simulate the delay condition
+global delay:[MIN_DELAY..MAX_DELAY] init MIN_DELAY;
 
 module environment
-	rt_delay:[MIN_DELAY..MAX_DELAY] init MIN_DELAY;
-	rt_delay_total:[0..MAX_TOTAL_DELAY] init 0;
+	//rt_delay:[MIN_DELAY..MAX_DELAY] init MIN_DELAY;
+	//rt_delay_total:[0..MAX_TOTAL_DELAY] init 0;
 	
 	//update the network latency
-	[] (t=TE) & (end=false) & (CUR_DELAY + rt_delay_total < MAX_TOTAL_DELAY) -> 
-		 (rt_delay'=CUR_DELAY)&(rt_delay_total'= rt_delay_total + CUR_DELAY) & (t'=TP);
+	//[] (t=TE) & (end=false) & (CUR_DELAY + rt_delay_total < MAX_TOTAL_DELAY) -> 
+	//	 (rt_delay'=CUR_DELAY)&(rt_delay_total'= rt_delay_total + CUR_DELAY) & (t'=TP);
+
+	[] (t=TE) & (end=false) -> (delay'=CUR_DELAY) & (t'=TP);
 endmodule
 
 //=============================================
@@ -190,16 +194,16 @@ formula sv_cs = ( sel_sv = SV_ALARM1_ID ? SV_ALARM1_CS :
 		( sel_sv = SV_DRUG2_ID ? SV_DRUG2_CS : 0 ))))))))));
 
 //to compute the overall service execution time 
-formula sv_rt = ( sel_sv = SV_ALARM1_ID ? SV_ALARM1_RT + rt_delay :
-		( sel_sv = SV_ALARM2_ID ? SV_ALARM2_RT + rt_delay :
-		( sel_sv = SV_ALARM3_ID ? SV_ALARM3_RT + rt_delay :
-		( sel_sv = SV_MEDIC1_ID ? SV_MEDIC1_RT + rt_delay :
-		( sel_sv = SV_MEDIC2_ID ? SV_MEDIC2_RT + rt_delay :
-		( sel_sv = SV_MEDIC3_ID ? SV_MEDIC3_RT + rt_delay :
-		( sel_sv = SV_MEDIC4_ID ? SV_MEDIC4_RT + rt_delay :
-		( sel_sv = SV_MEDIC5_ID ? SV_MEDIC5_RT + rt_delay :
-		( sel_sv = SV_DRUG1_ID ? SV_DRUG1_RT + rt_delay : 
-		( sel_sv = SV_DRUG2_ID ? SV_DRUG2_RT + rt_delay : 0 ))))))))));
+formula sv_rt = ( sel_sv = SV_ALARM1_ID ? SV_ALARM1_RT + delay :
+		( sel_sv = SV_ALARM2_ID ? SV_ALARM2_RT + delay :
+		( sel_sv = SV_ALARM3_ID ? SV_ALARM3_RT + delay :
+		( sel_sv = SV_MEDIC1_ID ? SV_MEDIC1_RT + delay :
+		( sel_sv = SV_MEDIC2_ID ? SV_MEDIC2_RT + delay :
+		( sel_sv = SV_MEDIC3_ID ? SV_MEDIC3_RT + delay :
+		( sel_sv = SV_MEDIC4_ID ? SV_MEDIC4_RT + delay :
+		( sel_sv = SV_MEDIC5_ID ? SV_MEDIC5_RT + delay :
+		( sel_sv = SV_DRUG1_ID ? SV_DRUG1_RT + delay : 
+		( sel_sv = SV_DRUG2_ID ? SV_DRUG2_RT + delay : 0 ))))))))));
 
 //to compute the overall failure rate 
 formula sv_fr = ( sel_sv = SV_ALARM1_ID ? SV_ALARM1_FR :

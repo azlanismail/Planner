@@ -64,6 +64,9 @@ public class Planner {
 	String md_goalTY = "GOAL_TY";
 	String md_serviceType = "SV_TY";
 	String md_serviceFailedId = "SV_FAIL_ID";
+	String md_delay = "CUR_DELAY";
+	String md_maxDelay = "MAX_DELAY";
+	String md_minDelay = "MIN_DELAY";
 	
 	//Defining properties for the planner
 	private int stage;
@@ -72,6 +75,7 @@ public class Planner {
 		this.stage = sg;
 		initiatePlanner();
 		initializeServiceProfile();
+		setDelay();
 	}
 	
 	private void initiatePlanner(){
@@ -190,6 +194,17 @@ public class Planner {
 		vm.setValue(md_sv_rt, rt);
 		vm.setValue(md_sv_cs, cs); 
 		vm.setValue(md_sv_fr, fr);
+	}
+	
+	public void setDelay(){
+		Random rand = new Random();
+		int maxDelay = 5;
+		int minDelay = 0;
+		int delay = rand.nextInt(maxDelay - minDelay + 1) + minDelay;
+		System.out.println("Delay :"+delay);
+		vm.setValue(md_delay, delay);
+		vm.setValue(md_maxDelay, maxDelay);
+		vm.setValue(md_minDelay, minDelay);
 	}
 	
 	/**
@@ -594,7 +609,7 @@ public class Planner {
 				
  		Random rand = new Random();
  		int serviceType = -1;
- 		for (int i=0; i < 100; i++)
+ 		for (int i=0; i < 10; i++)
  	    {
  			System.out.println("number of cycle :"+i);
  			//serviceType = rand.nextInt(3);
