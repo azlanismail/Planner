@@ -9,3 +9,9 @@ const double MAXFR = 0.7;
 
 <<am>> R{"utilityGoal"}max=? [ F "done" ]
 
+<<am>> R{"cost"}max=? [ F "done" ]
+
+<<am>> R{"reliability"}max=? [ F "done" ]
+
+<<am>> R{"time"}max=? [ F "done" ]
+
