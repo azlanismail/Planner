@@ -32,9 +32,9 @@ const double MAX_FR = 0.7;
 const int MAX_RT = 26; // + MAX_TOTAL_DELAY;	//maximum response time - to limit the goal
 const int INIT_RT= 0; 	//initial response time
 
-const double WG_CS = 0.4; //to support utility decision making
+const double WG_CS = 0.3; //to support utility decision making
 const double WG_RT = 0.3; //to support utility decision making
-const double WG_FR = 0.3; //to support utility decision making
+const double WG_FR = 0.4; //to support utility decision making
 
 
 //inputs from the probing:
