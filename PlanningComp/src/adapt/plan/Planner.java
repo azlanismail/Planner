@@ -621,8 +621,13 @@ public class Planner {
 				
  		Random rand = new Random();
  		int serviceType = -1;
- 		for (int i=0; i < 10; i++)
+ 		int limit = 3000;
+ 		long time[] = new long[limit];
+ 		TimeMeasure tm = new TimeMeasure();
+ 		
+ 		for (int i=0; i < limit; i++)
  	    {
+ 			tm.start();
  			System.out.println("number of cycle :"+i);
  			//serviceType = rand.nextInt(3);
  			serviceType = 0;
@@ -641,7 +646,15 @@ public class Planner {
  				e.printStackTrace();
  				System.err.println("something not right");
  			}
+ 			tm.stop();
+ 			time[i] = tm.getDuration();
  	    }
+ 		
+ 		long total = 0;
+ 		for(int k=0; k < limit; k++)
+ 			total +=time[k];
+ 		
+ 		System.out.println("The average time is "+(total/limit));
  	}
      
 }
