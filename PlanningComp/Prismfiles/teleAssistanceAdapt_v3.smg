@@ -127,10 +127,6 @@ global end : bool init false;	//(absorbing state)
 // player controller
 
 module controller
-	//-1 - means initial selection
-	//0 - means service timeout (i.e failure or delay)
-	//1 - service not found
-       // probe:[-1..1] init CUR_PROBE;
 	sel_sv:[-1..MAX_SV] init -1;
 	
 	//for retry
