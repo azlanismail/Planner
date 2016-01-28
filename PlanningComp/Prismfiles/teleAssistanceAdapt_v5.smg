@@ -1,0 +1,304 @@
+// optimal planning for self-adaptation
+// by Azlan Ismail
+  
+
+smg
+
+// player for the controller
+player am 
+controller, [MedicalService1], [MedicalService2], [MedicalService3],[MedicalService4], [MedicalService5],
+[AlarmService1], [AlarmService2], [AlarmService3], [DrugService1], [DrugService2], [Retry]
+endplayer
+
+//player for the environment
+player env 
+environment 
+endplayer
+
+
+//======================================================================
+//inputs from the adaptation engine:
+
+//inputs for goal
+const int GOAL_TY;	
+const int GOAL_TY_CS = 0;  	
+const int GOAL_TY_FR = 1;	
+const int GOAL_TY_RT = 2;	
+const int GOAL_TY_UTILITY = 3;	
+const int GOAL_TY_MULTI = 4;	
+
+const double MAX_CS = 20; 
+const double MAX_FR = 0.7;
+const int MAX_RT = 26; // + MAX_TOTAL_DELAY;	//maximum response time - to limit the goal
+const int INIT_RT= 0; 	//initial response time
+
+const int RETRY; // = 1;
+
+//utility-based decision making
+const double WG_CS; // = 0.3; 
+const double WG_RT; // = 0.3; 
+const double WG_FR; // = 0.4; 
+
+
+//inputs from the probing:
+const int CUR_PROBE; 
+const int SV_SELECT = -1;
+const int SV_TIMEOUT = 0;
+const int SV_NOTFOUND = 1;
+const int SV_TY;  
+const int SV_TY_MEDIC = 0;
+const int SV_TY_ALARM = 1;
+const int SV_TY_DRUG = 2;
+const int SV_FAIL_ID; 
+const MAX_SV = 10; 
+
+//alarm service info - id
+const int SV_ALARM1_ID; // = 1;
+const int SV_ALARM2_ID; // = 2;
+const int SV_ALARM3_ID; // = 3;
+
+//alarm service info - response time
+const int SV_ALARM1_RT; // = 11; 
+const int SV_ALARM2_RT; // = 9;
+const int SV_ALARM3_RT; // = 3;
+
+//alarm service info - cost
+const double SV_ALARM1_CS; // = 4.1; 
+const double SV_ALARM2_CS; // = 2.5;
+const double SV_ALARM3_CS; // = 6.8;
+
+//alarm service info - success rate
+const double SV_ALARM1_FR; // = 0.11; 
+const double SV_ALARM2_FR; // = 0.04;
+const double SV_ALARM3_FR; // = 0.18;
+
+//medical service info - id
+const int SV_MEDIC1_ID; // = 4; 
+const int SV_MEDIC2_ID; // = 5;
+const int SV_MEDIC3_ID; // = 6;
+const int SV_MEDIC4_ID; // = 7;
+const int SV_MEDIC5_ID; // = 8;
+
+//medical service info - response time
+const int SV_MEDIC1_RT; // = 22; 
+const int SV_MEDIC2_RT; // = 27;
+const int SV_MEDIC3_RT; // = 31;
+const int SV_MEDIC4_RT; // = 29;
+const int SV_MEDIC5_RT; // = 20;
+
+//medical service info - cost
+const double SV_MEDIC1_CS; // = 9.8; 
+const double SV_MEDIC2_CS; // = 8.9;
+const double SV_MEDIC3_CS; // = 9.3;
+const double SV_MEDIC4_CS; // = 7.3;
+const double SV_MEDIC5_CS; // = 11.9;
+
+//medical service info - success rate
+const double SV_MEDIC1_FR; // = 0.12; 
+const double SV_MEDIC2_FR; // = 0.07;
+const double SV_MEDIC3_FR; // = 0.18;
+const double SV_MEDIC4_FR; // = 0.25;
+const double SV_MEDIC5_FR; // = 0.05;
+
+//drug service info
+const int    SV_DRUG1_ID; // = 9;
+const int    SV_DRUG1_RT; // = 1;
+const double SV_DRUG1_CS; // = 0.1;
+const double SV_DRUG1_FR; // = 0.01;
+//const int    SV_DRUG1_OP; // = 1;
+
+const int    SV_DRUG2_ID; // = 10;
+const int    SV_DRUG2_RT; // = 1;
+const double SV_DRUG2_CS; // = 0.1;
+const double SV_DRUG2_FR; // = 0.01;
+//const int    SV_DRUG2_OP; // = 2;
+ 
+
+//======================================================
+//to control the turn
+const TE=0;
+const TP=1;
+global t:[TE..TP] init TP;
+
+//to constraint the selection
+global goal : bool init false;	//requirement
+
+//to terminate the adaptation
+global end : bool init false;	//(absorbing state)
+
+//======================================================
+// player controller
+
+module controller
+	sel_sv:[-1..MAX_SV] init -1;
+	
+	//for retry
+	[Retry] (t=TP) & (goal=false) & (CUR_PROBE>=SV_TIMEOUT) & (SV_FAIL_ID > -1) & (RETRY < 1) -> (sel_sv'=SV_FAIL_ID) & (goal'=sat) & (t'=TE);
+    
+	//for medical service
+	[MedicalService1] (t=TP) & (goal=false) & (CUR_PROBE>=SV_SELECT) & (SV_TY=0) & (SV_FAIL_ID != SV_MEDIC1_ID) -> (sel_sv'=SV_MEDIC1_ID) & (goal'=sat) & (t'=TE);
+        [MedicalService2] (t=TP) & (goal=false) & (CUR_PROBE>=SV_SELECT) & (SV_TY=0) & (SV_FAIL_ID != SV_MEDIC2_ID) -> (sel_sv'=SV_MEDIC2_ID) & (goal'=sat) & (t'=TE);
+	[MedicalService3] (t=TP) & (goal=false) & (CUR_PROBE>=SV_SELECT) & (SV_TY=0) & (SV_FAIL_ID != SV_MEDIC3_ID) -> (sel_sv'=SV_MEDIC3_ID) & (goal'=sat) & (t'=TE);
+	[MedicalService4] (t=TP) & (goal=false) & (CUR_PROBE>=SV_SELECT) & (SV_TY=0) & (SV_FAIL_ID != SV_MEDIC4_ID) -> (sel_sv'=SV_MEDIC4_ID) & (goal'=sat) & (t'=TE);
+	[MedicalService5] (t=TP) & (goal=false) & (CUR_PROBE>=SV_SELECT) & (SV_TY=0) & (SV_FAIL_ID != SV_MEDIC5_ID) -> (sel_sv'=SV_MEDIC5_ID) & (goal'=sat) & (t'=TE);
+
+	//for alarm service
+	[AlarmService1] (t=TP) & (goal=false) & (CUR_PROBE>=SV_SELECT) & (SV_TY=1) & (SV_FAIL_ID != SV_ALARM1_ID) -> (sel_sv'=SV_ALARM1_ID) & (goal'=sat) & (t'=TE);
+	[AlarmService2] (t=TP) & (goal=false) & (CUR_PROBE>=SV_SELECT) & (SV_TY=1) & (SV_FAIL_ID != SV_ALARM2_ID) -> (sel_sv'=SV_ALARM2_ID) & (goal'=sat) & (t'=TE);
+	[AlarmService3] (t=TP) & (goal=false) & (CUR_PROBE>=SV_SELECT) & (SV_TY=1) & (SV_FAIL_ID != SV_ALARM3_ID) -> (sel_sv'=SV_ALARM3_ID) & (goal'=sat) & (t'=TE);
+
+        //for drug service
+	//purposely create two similar drug services due to simplify the searching function for the decision state (refer to the planner component in java)
+	[DrugService1] (t=TP) & (goal=false) & (CUR_PROBE>=SV_SELECT) & (SV_TY=2) & (SV_FAIL_ID != SV_DRUG1_ID) -> (sel_sv'=SV_DRUG1_ID) & (goal'=sat) & (t'=TE);
+        [DrugService2] (t=TP) & (goal=false) & (CUR_PROBE>=SV_SELECT) & (SV_TY=2) & (SV_FAIL_ID != SV_DRUG2_ID) -> (sel_sv'=SV_DRUG2_ID) & (goal'=sat) & (t'=TE);
+
+	//terminate
+	[] (t=TP) & (goal=true) & (end=false) -> (end'=true);
+endmodule
+
+//====================================================
+//player environment
+const MIN_DELAY; // = 0;
+const MAX_DELAY; // = 5;
+const CUR_DELAY; // = 0;
+//const MAX_TOTAL_DELAY = 10;
+
+//to simulate the delay condition
+global delay:[MIN_DELAY..MAX_DELAY] init MIN_DELAY;
+
+module environment
+	//update the network latency
+	//[] (t=TE) & (end=false) & (CUR_DELAY + rt_delay_total < MAX_TOTAL_DELAY) -> 
+	//	 (rt_delay'=CUR_DELAY)&(rt_delay_total'= rt_delay_total + CUR_DELAY) & (t'=TP);
+
+	[] (t=TE) & (end=false) -> (delay'=CUR_DELAY) & (t'=TP);
+endmodule
+
+//=============================================
+//defining the formulas for Single-objective optimization
+
+//to compute the overall cost 
+formula sv_cs = ( sel_sv = SV_ALARM1_ID ? SV_ALARM1_CS :
+		( sel_sv = SV_ALARM2_ID ? SV_ALARM2_CS :
+		( sel_sv = SV_ALARM3_ID ? SV_ALARM3_CS :
+		( sel_sv = SV_MEDIC1_ID ? SV_MEDIC1_CS :
+		( sel_sv = SV_MEDIC2_ID ? SV_MEDIC2_CS :
+		( sel_sv = SV_MEDIC3_ID ? SV_MEDIC3_CS :
+		( sel_sv = SV_MEDIC4_ID ? SV_MEDIC4_CS :
+                ( sel_sv = SV_MEDIC5_ID ? SV_MEDIC5_CS : 
+		( sel_sv = SV_DRUG1_ID ? SV_DRUG1_CS : 
+		( sel_sv = SV_DRUG2_ID ? SV_DRUG2_CS : 0 ))))))))));
+
+//to compute the overall service execution time 
+formula sv_rt = ( sel_sv = SV_ALARM1_ID ? SV_ALARM1_RT + delay :
+		( sel_sv = SV_ALARM2_ID ? SV_ALARM2_RT + delay :
+		( sel_sv = SV_ALARM3_ID ? SV_ALARM3_RT + delay :
+		( sel_sv = SV_MEDIC1_ID ? SV_MEDIC1_RT + delay :
+		( sel_sv = SV_MEDIC2_ID ? SV_MEDIC2_RT + delay :
+		( sel_sv = SV_MEDIC3_ID ? SV_MEDIC3_RT + delay :
+		( sel_sv = SV_MEDIC4_ID ? SV_MEDIC4_RT + delay :
+		( sel_sv = SV_MEDIC5_ID ? SV_MEDIC5_RT + delay :
+		( sel_sv = SV_DRUG1_ID ? SV_DRUG1_RT + delay : 
+		( sel_sv = SV_DRUG2_ID ? SV_DRUG2_RT + delay : 0 ))))))))));
+
+//to compute the overall failure rate 
+formula sv_fr = ( sel_sv = SV_ALARM1_ID ? SV_ALARM1_FR :
+		( sel_sv = SV_ALARM2_ID ? SV_ALARM2_FR :
+		( sel_sv = SV_ALARM3_ID ? SV_ALARM3_FR :
+		( sel_sv = SV_MEDIC1_ID ? SV_MEDIC1_FR :
+		( sel_sv = SV_MEDIC2_ID ? SV_MEDIC2_FR :
+		( sel_sv = SV_MEDIC3_ID ? SV_MEDIC3_FR :
+		( sel_sv = SV_MEDIC4_ID ? SV_MEDIC4_FR :
+                ( sel_sv = SV_MEDIC5_ID ? SV_MEDIC5_FR : 
+		( sel_sv = SV_DRUG1_ID ? SV_DRUG1_FR : 
+		( sel_sv = SV_DRUG2_ID ? SV_DRUG2_FR : 0 ))))))))));
+
+
+//to check the satisfaction of response time constraint
+formula sat_rt = (sv_rt<MAX_RT?true:false);
+
+//to check the satisfaction of cost constraint
+formula sat_cs = (sv_cs<MAX_CS?true:false);
+
+//to check the satisfaction of failure rate constraint
+formula sat_fr = (sv_fr<MAX_FR?true:false);
+
+//to check the constraint satisfaction of the selected QoS attribute
+formula sat = ( GOAL_TY = GOAL_TY_CS ? sat_cs :
+	      (	GOAL_TY = GOAL_TY_FR ? sat_fr :
+	      (	GOAL_TY = GOAL_TY_RT ? sat_rt :
+	      (	GOAL_TY = GOAL_TY_UTILITY ? sat_rt & sat_cs & sat_fr : 
+	      (	GOAL_TY = GOAL_TY_MULTI   ? sat_rt & sat_cs & sat_fr : false )))));
+
+//==============================================
+// defining formula for utility-based decision making
+
+//computing the utility value for cost based on SAW technique
+formula mx_medic_cs = max(SV_MEDIC1_CS, SV_MEDIC2_CS, SV_MEDIC3_CS, SV_MEDIC4_CS, SV_MEDIC5_CS);
+formula mn_medic_cs = min(SV_MEDIC1_CS, SV_MEDIC2_CS, SV_MEDIC3_CS, SV_MEDIC4_CS, SV_MEDIC5_CS);
+
+formula mx_alarm_cs = max(SV_ALARM1_CS, SV_ALARM2_CS, SV_ALARM3_CS);
+formula mn_alarm_cs = min(SV_ALARM1_CS, SV_ALARM2_CS, SV_ALARM3_CS);
+
+formula mx_drug_cs = max(SV_DRUG1_CS, SV_DRUG2_CS);
+formula mn_drug_cs = min(SV_DRUG1_CS, SV_DRUG2_CS);
+
+formula uv_cs = ( SV_TY = SV_TY_MEDIC ? (mx_medic_cs - sv_cs) / (mx_medic_cs - mn_medic_cs) :
+		( SV_TY = SV_TY_ALARM ? (mx_alarm_cs - sv_cs) / (mx_alarm_cs - mn_alarm_cs) :
+		//( SV_TY = SV_TY_DRUG ? (mx_drug_cs - sv_cs) / (mx_drug_cs - mn_drug_cs) : 0 )));
+		//simply set to 0 since there is actually a single component service for drug
+		( SV_TY = SV_TY_DRUG ? 0 : 0 )));
+
+//computing the utility value for response time based on SAW technique
+formula mx_medic_rt = max(SV_MEDIC1_RT, SV_MEDIC2_RT, SV_MEDIC3_RT, SV_MEDIC4_RT, SV_MEDIC5_RT);
+formula mn_medic_rt = min(SV_MEDIC1_RT, SV_MEDIC2_RT, SV_MEDIC3_RT, SV_MEDIC4_RT, SV_MEDIC5_RT);
+
+formula mx_alarm_rt = max(SV_ALARM1_RT, SV_ALARM2_RT, SV_ALARM3_RT);
+formula mn_alarm_rt = min(SV_ALARM1_RT, SV_ALARM2_RT, SV_ALARM3_RT);
+
+formula mx_drug_rt = max(SV_DRUG1_RT, SV_DRUG2_RT);
+formula mn_drug_rt = min(SV_DRUG1_RT, SV_DRUG2_RT);
+
+formula uv_rt = ( SV_TY = SV_TY_MEDIC ? (mx_medic_rt - sv_rt) / (mx_medic_rt - mn_medic_rt) :
+		( SV_TY = SV_TY_ALARM ? (mx_alarm_rt - sv_rt) / (mx_alarm_rt - mn_alarm_rt) :
+		//( SV_TY = SV_TY_DRUG ? (mx_drug_rt - sv_rt) / (mx_drug_rt - mn_drug_rt) : 0 )));
+		( SV_TY = SV_TY_DRUG ? 0 : 0 )));
+
+//computing the utility value for failure rate based on SAW techniue
+formula mx_medic_fr = max(SV_MEDIC1_FR, SV_MEDIC2_FR, SV_MEDIC3_FR, SV_MEDIC4_FR, SV_MEDIC5_FR);
+formula mn_medic_fr = min(SV_MEDIC1_FR, SV_MEDIC2_FR, SV_MEDIC3_FR, SV_MEDIC4_FR, SV_MEDIC5_FR);
+
+formula mx_alarm_fr = max(SV_ALARM1_FR, SV_ALARM2_FR, SV_ALARM3_FR);
+formula mn_alarm_fr = min(SV_ALARM1_FR, SV_ALARM2_FR, SV_ALARM3_FR);
+
+formula mx_drug_fr = max(SV_DRUG1_FR, SV_DRUG2_FR);
+formula mn_drug_fr = min(SV_DRUG1_FR, SV_DRUG2_FR);
+
+formula uv_fr = ( SV_TY = SV_TY_MEDIC ? (mx_medic_fr - sv_fr) / (mx_medic_fr - mn_medic_fr) :
+		( SV_TY = SV_TY_ALARM ? (mx_alarm_fr - sv_fr) / (mx_alarm_fr - mn_alarm_fr) :
+		//( SV_TY = SV_TY_DRUG ? (mx_drug_fr - sv_fr) / (mx_drug_fr - mn_drug_fr) : 0 )));
+		( SV_TY = SV_TY_DRUG ? 0 : 0 )));
+
+//compute the overall utility value
+formula uv_all = uv_cs * WG_CS + uv_rt * WG_RT + uv_fr * WG_FR;
+
+//==============================================
+// associating the computed QoS to the reward
+
+rewards "time"
+	t = TP : sv_rt;
+endrewards
+
+rewards "cost"
+	t = TP : sv_cs;
+endrewards
+
+rewards "reliability"
+	t = TP : sv_fr;
+endrewards
+
+rewards "utilityGoal"
+	t = TP : uv_all;
+endrewards
+
+label "done" = end = true;
