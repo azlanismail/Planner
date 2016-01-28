@@ -45,8 +45,8 @@ public class Planner {
 	String laptopPath = "C:/Users/USER/git/Planner/PlanningComp/";
 	String desktopPath = "H:/git/Planner/PlanningComp/";
 	String linuxPath = "/home/azlani/git/Planner/PlanningComp/";
-	String mainPath = desktopPath;
-	String modelPath = mainPath+"Prismfiles/teleAssistanceAdapt_v3.smg";
+	String mainPath = laptopPath;
+	String modelPath = mainPath+"Prismfiles/teleAssistanceAdapt_v5.smg";
 	String propPath = mainPath+"Prismfiles/propTeleAssistance.props";
 	String modelConstPath = mainPath+"IOFiles/ModelConstants.txt";
 	String propConstPath = mainPath+"IOFiles/PropConstants.txt";
@@ -67,6 +67,13 @@ public class Planner {
 	String md_delay = "CUR_DELAY";
 	String md_maxDelay = "MAX_DELAY";
 	String md_minDelay = "MIN_DELAY";
+	
+	String md_retry = "RETRY";
+
+	//utility-based decision making
+	String md_wg_cs = "WG_CS"; 
+	String md_wg_rt = "WG_RT";  
+	String md_wg_fr = "WG_FR"; 
 	
 	//Defining properties for the planner
 	private int stage;
@@ -142,6 +149,17 @@ public class Planner {
 		vm.setValue(md_maxFR, maxFR);
 	}
 	
+	public void setConstantsUtilWeight(double wgCS, double wgRT, double wgFR) {
+		vm.setValue(md_wg_cs, wgCS);
+		vm.setValue(md_wg_rt, wgRT);
+		vm.setValue(md_wg_fr, wgFR);
+	}
+	
+	public void setConstantsRetry(int r) {
+		vm.setValue(md_retry, r);
+	}
+	
+	
 	public void initializeServiceProfile(){
 		//set the service profiles for alarm service
  		setConstantsServiceProfile(1, 11, 4.0, 0.11);
@@ -216,7 +234,7 @@ public class Planner {
 	 * @param maxRT
 	 * @param maxFR
 	 */
-	public void setConstantsTesting(int goalType, int probe, int type, int id, int maxRT, double maxCS, double maxFR) {
+	public void setConstantsTesting(int goalType, int probe, int type, int id, int maxRT, double maxCS, double maxFR, int r) {
 		setConstantsGoalType(goalType);
 		setConstantsProbe(probe);
 		setConstantsServiceType(type);
@@ -224,6 +242,7 @@ public class Planner {
 		setConstantsMaxResponseTime(maxRT);
 		setConstantsMaxCost(maxCS);
 		setConstantsMaxFailureRate(maxFR);
+		setConstantsRetry(r);
 	}
 	
 	/**
@@ -233,11 +252,13 @@ public class Planner {
 	 * @param type
 	 * @param id
 	 */
-	public void setConstantsParams(int goalType, int probe, String type, int id) {
+	public void setConstantsParams(int goalType, int probe, String type, int id, int r, double wcs, double wrt, double wfr) {
 		setConstantsGoalType(goalType);
 		setConstantsProbe(probe);
 		setServiceType(type);
 		setConstantsFailedServiceId(id);
+		setConstantsRetry(r);
+		setConstantsUtilWeight(wcs, wrt, wfr);
 		//setConstantsMaxResponseTime(maxRT);
 		//setConstantsMaxCost(maxCS);
 		//setConstantsMaxFailureRate(maxFR);
@@ -345,11 +366,11 @@ public class Planner {
     public void exportTrans() throws PrismException
     {
     	if (this.stage == 0){
-    		File transFile = new File(transPath1);
-    		model.exportToPrismExplicitTra(transFile);
+    		File transFile1 = new File(transPath1);
+    		model.exportToPrismExplicitTra(transFile1);
     	}else{
-    		File transFile = new File(transPath2);
-    		model.exportToPrismExplicitTra(transFile);
+    		File transFile2 = new File(transPath2);
+    		model.exportToPrismExplicitTra(transFile2);
     	}
     	
     }
@@ -600,7 +621,7 @@ public class Planner {
 
     	//0-means the initial stage
     	//1-means the adaptation stage
-    	int stage = 1;
+    	int stage = 0;
  		Planner plan = new Planner(stage); 
  		
  		//set the service profiles for alarm service
@@ -621,17 +642,23 @@ public class Planner {
 				
  		Random rand = new Random();
  		int serviceType = -1;
- 		int limit = 3000;
- 		long time[] = new long[limit];
+ 		int cycle = 1000;
+ 		int goalType = 3;
+ 		int retry = 1;
+ 		long time[] = new long[cycle];
  		TimeMeasure tm = new TimeMeasure();
  		
- 		for (int i=0; i < limit; i++)
+ 		for (int i=0; i < cycle; i++)
  	    {
  			tm.start();
  			System.out.println("number of cycle :"+i);
- 			//serviceType = rand.nextInt(3);
- 			serviceType = 0;
- 			plan.setConstantsTesting(2,-1,serviceType,-1,26,20,0.7);
+ 			serviceType = rand.nextInt(3);
+ 			//serviceType = 0;
+ 			plan.setConstantsTesting(goalType,2,serviceType,-1,26,20,0.7, retry);
+ 			
+ 			if (goalType == 3) {
+ 				plan.setConstantsUtilWeight(0.3, 0.3, 0.4);
+ 			}
  	    
  			plan.generate();
 	  
@@ -651,10 +678,10 @@ public class Planner {
  	    }
  		
  		long total = 0;
- 		for(int k=0; k < limit; k++)
+ 		for(int k=0; k < cycle; k++)
  			total +=time[k];
  		
- 		System.out.println("The average time is "+(total/limit));
+ 		System.out.println("The average time is "+(total/cycle));
  	}
      
 }
