@@ -60,7 +60,7 @@ public class Planner {
 	String md_maxCS = "MAX_CS";
 	String md_maxRT = "MAX_RT";
 	String md_maxFR = "MAX_FR";
-	String md_goalTQ = "GOAL_TQ";
+	//String md_goalTQ = "GOAL_TQ";
 	String md_goalTY = "GOAL_TY";
 	String md_serviceType = "SV_TY";
 	String md_serviceFailedId = "SV_FAIL_ID";
