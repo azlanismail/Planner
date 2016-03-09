@@ -642,7 +642,7 @@ public class Planner {
 				
  		Random rand = new Random();
  		int serviceType = -1;
- 		int cycle = 200;
+ 		int cycle = 5000;
  		int goalType = 3;
  		int retry = 1;
  		long time[] = new long[cycle];
@@ -656,9 +656,9 @@ public class Planner {
  			//serviceType = 0;
  			plan.setConstantsTesting(goalType,2,serviceType,-1,26,20,0.7, retry);
  			
- 			if (goalType == 3) {
- 				plan.setConstantsUtilWeight(0.3, 0.3, 0.4);
- 			}
+ 		//	if (goalType == 3) {
+ 				plan.setConstantsUtilWeight(0.6, 0.2, 0.2);
+ 		//	}
  	    
  			plan.generate();
 	  
@@ -681,6 +681,7 @@ public class Planner {
  		for(int k=0; k < cycle; k++)
  			total +=time[k];
  		
+ 		System.out.println("total is "+total);
  		long avg = (total/cycle);
  		System.out.println("The average time is "+avg);
  	}
