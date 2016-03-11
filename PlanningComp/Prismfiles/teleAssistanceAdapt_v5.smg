@@ -133,7 +133,7 @@ module controller
 	sel_sv:[-1..MAX_SV] init -1;
 	
 	//for retry
-	[Retry] (t=TP) & (goal=false) & (CUR_PROBE>=SV_TIMEOUT) & (SV_FAIL_ID > -1) & (RETRY < 1) -> (sel_sv'=SV_FAIL_ID) & (goal'=sat) & (t'=TE);
+	[Retry] (t=TP) & (goal=false) & (CUR_PROBE>=SV_TIMEOUT) & (SV_FAIL_ID > -1) & (RETRY > 0) -> (sel_sv'=SV_FAIL_ID) & (goal'=sat) & (t'=TE);
     
 	//for medical service
 	[MedicalService1] (t=TP) & (goal=false) & (CUR_PROBE>=SV_SELECT) & (SV_TY=0) & (SV_FAIL_ID != SV_MEDIC1_ID) -> (sel_sv'=SV_MEDIC1_ID) & (goal'=sat) & (t'=TE);

@@ -78,6 +78,8 @@ public class Planner {
 	//Defining properties for the planner
 	private int stage;
 	
+	Scanner read;
+	
 	public Planner(int sg) {
 		this.stage = sg;
 		initiatePlanner();
@@ -363,7 +365,7 @@ public class Planner {
      * Objective: It extracts the transitions which have been synthesized
      * @throws PrismException
      */
-    public void exportTrans() throws PrismException
+    public synchronized void exportTrans() throws PrismException
     {
     	if (this.stage == 0){
     		File transFile1 = new File(transPath1);
@@ -380,7 +382,7 @@ public class Planner {
     * Objective: To export the synthesize strategy into an external file
     * @param straFile
     */
-    public void exportStrategy()
+    public synchronized void exportStrategy()
     {
     	//assign the pointer from SMGModelChecker to strategy
     	strategy = smc.getStrategy();
@@ -510,10 +512,46 @@ public class Planner {
 		return decState;
     }
     
-    public int getAdaptStrategyfromAdv() throws IllegalArgumentException, FileNotFoundException
+    public synchronized int getAdaptStrategyfromAdv() throws IllegalArgumentException, FileNotFoundException
     {   
+    	//generate();
     	//==============Get the decision strategy
-    	int decState = getDecisionStateM1();
+    	//int decState = getDecisionStateM1();
+    	//read from transition file
+    	//Scanner read;
+    	
+    	if (this.stage ==0)
+    		read = new Scanner(new BufferedReader(new FileReader(transPath1)));
+    	else
+    		read = new Scanner(new BufferedReader(new FileReader(transPath2)));
+		//read.useDelimiter(",");
+		int prevState = -1;
+		int curStateI = -1;
+		int decState = -1;
+		//skip the first line
+		read.nextLine();
+		prevState = read.nextInt();
+		read.nextLine();
+		//System.out.println("prev state is "+prevState);
+		while (read.hasNextLine()) {
+		   	curStateI = read.nextInt();
+		   //	System.out.println("current state is "+curState);
+			if (prevState == curStateI) {
+				decState = curStateI;
+				break;
+			}
+			else {
+				prevState = curStateI;
+			}
+			read.nextLine();
+			
+        }
+		//read.close();
+		
+		if (decState == -1) throw new IllegalArgumentException("Invalid decision state");
+		System.out.println("Decision state is :"+decState);
+		
+		
 		
     	//========get the strategy
     	int choice = 0;
@@ -522,55 +560,55 @@ public class Planner {
     	//Read from the exported strategy
     	Scanner readS;
     	if (this.stage ==0)
-    		readS = new Scanner(new BufferedReader(new FileReader(stratPath1)));
+    		read = new Scanner(new BufferedReader(new FileReader(stratPath1)));
     	else
-    		readS = new Scanner(new BufferedReader(new FileReader(stratPath2)));
+    		read = new Scanner(new BufferedReader(new FileReader(stratPath2)));
 		//read.useDelimiter(",");
 		int inData = -1;
 		
 		//need to skip the first two lines
-		readS.nextLine(); readS.nextLine();
-		while (readS.hasNextLine()) {
-			 inData = readS.nextInt();
+		read.nextLine(); read.nextLine();
+		while (read.hasNextLine()) {
+			 inData = read.nextInt();
 			 //find the decision state
 			 if (inData == decState){
 				 //pick up the selected choice
-				 choice = readS.nextInt();
+				 choice = read.nextInt();
 				 break;
 			 }
         }
-		readS.close();
+		//read.close();
 		System.out.println("Obtained strategy is "+choice);
 		
 		//===========get the label======================
 		Scanner readL;
 		if (this.stage ==0)
-    		readL = new Scanner(new BufferedReader(new FileReader(transPath1)));
+    		read = new Scanner(new BufferedReader(new FileReader(transPath1)));
     	else
-    		readL = new Scanner(new BufferedReader(new FileReader(transPath2)));
+    		read = new Scanner(new BufferedReader(new FileReader(transPath2)));
 		int curState = -1;
 		int decAction = choice;
     	int curAction = -1;
     	String label = null;
     	boolean status = false;
 		//skip the first line
-		readL.nextLine();
-		while (readL.hasNextLine()) {
-		   	curState = readL.nextInt();
+		read.nextLine();
+		while (read.hasNextLine()) {
+		   	curState = read.nextInt();
 		   //	System.out.println("current state is "+curState);
 			if (curState == decState) {
-				curAction = readL.nextInt();
+				curAction = read.nextInt();
 				if (curAction == decAction) {
 					//skip two columns
-					readL.nextInt(); readL.nextInt();
-					label = readL.next();
+					read.nextInt(); read.nextInt();
+					label = read.next();
 					status = true;
 				}
 			}
 			if (status == true) break;
-			readL.nextLine();
+			read.nextLine();
         }
-		readL.close();
+		read.close();
 		System.out.println("Label is :"+label);
 		
 		//==========get the id
@@ -582,7 +620,7 @@ public class Planner {
     /**
      * Objective: To generate the adaptation plan
      */
-    public void generate() 
+    public synchronized void generate() 
     {        
     	//assign constants values to the model 
     	try {
@@ -642,7 +680,7 @@ public class Planner {
 				
  		Random rand = new Random();
  		int serviceType = -1;
- 		int cycle = 5000;
+ 		int cycle = 5;
  		int goalType = 3;
  		int retry = 1;
  		long time[] = new long[cycle];
@@ -652,8 +690,8 @@ public class Planner {
  	    {
  			tm.start();
  			System.out.println("number of cycle :"+i);
- 			serviceType = rand.nextInt(3);
- 			//serviceType = 0;
+ 			//serviceType = rand.nextInt(3);
+ 			serviceType = 1;
  			plan.setConstantsTesting(goalType,2,serviceType,-1,26,20,0.7, retry);
  			
  		//	if (goalType == 3) {
