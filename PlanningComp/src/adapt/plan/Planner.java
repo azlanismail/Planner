@@ -365,7 +365,7 @@ public class Planner {
      * Objective: It extracts the transitions which have been synthesized
      * @throws PrismException
      */
-    public synchronized void exportTrans() throws PrismException
+    public void exportTrans() throws PrismException
     {
     	if (this.stage == 0){
     		File transFile1 = new File(transPath1);
@@ -382,7 +382,7 @@ public class Planner {
     * Objective: To export the synthesize strategy into an external file
     * @param straFile
     */
-    public synchronized void exportStrategy()
+    public void exportStrategy()
     {
     	//assign the pointer from SMGModelChecker to strategy
     	strategy = smc.getStrategy();
@@ -512,7 +512,7 @@ public class Planner {
 		return decState;
     }
     
-    public synchronized int getAdaptStrategyfromAdv() throws IllegalArgumentException, FileNotFoundException
+    public int getAdaptStrategyfromAdv() throws IllegalArgumentException, FileNotFoundException
     {   
     	//generate();
     	//==============Get the decision strategy
@@ -546,7 +546,7 @@ public class Planner {
 			read.nextLine();
 			
         }
-		//read.close();
+		read.close();
 		
 		if (decState == -1) throw new IllegalArgumentException("Invalid decision state");
 		System.out.println("Decision state is :"+decState);
@@ -577,7 +577,7 @@ public class Planner {
 				 break;
 			 }
         }
-		//read.close();
+		read.close();
 		System.out.println("Obtained strategy is "+choice);
 		
 		//===========get the label======================
@@ -620,7 +620,7 @@ public class Planner {
     /**
      * Objective: To generate the adaptation plan
      */
-    public synchronized void generate() 
+    public void generate() 
     {        
     	//assign constants values to the model 
     	try {
